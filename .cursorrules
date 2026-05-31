@@ -1,0 +1,38 @@
+# DocVerify - Global Cursor Rules
+
+## 1. Project Context & Objectives
+- **Project Name:** DocVerify (Digital Document Issuance & Verification System)
+- **Objective:** Create a secure, PDPA-compliant enterprise system for issuing and verifying documents using cryptographic hashing (SHA-256) and QR Codes.
+- **Phases of Development:**
+  1. Requirements Definition
+  2. Context & State Alignment
+  3. AI Code Generation
+  4. Human Review (Diff Check)
+  5. Quality Assurance & Testing
+  6. Deployment & Monitoring (Vercel)
+
+## 2. Tech Stack & Technologies
+- **Framework:** Next.js 14 (App Router)
+- **Language:** TypeScript (Strict mode)
+- **UI & Styling:** Tailwind CSS, shadcn/ui, lucide-react
+- **State Management:** React Hooks (useState, useCallback, useEffect)
+- **Database & Storage:** Firebase Firestore (Test Mode) & Firebase Storage
+- **Core Logic Libraries:** 
+  - Web Crypto API (`crypto.subtle.digest` for SHA-256 hashing)
+  - `qrcode.react` (for rendering QR codes)
+  - `html5-qrcode` (for scanning QR codes in Verifier Portal)
+
+## 3. Strict Coding Standards
+- **Component Structure:** Use functional components. Always include `"use client";` at the top of files that utilize browser APIs or React hooks.
+- **TypeScript:** NO `any` types. Define precise `interfaces` or `types` for all data structures, especially Firebase payloads.
+- **Tailwind:** Use the `cn()` utility function from `lib/utils` for merging Tailwind classes dynamically.
+- **Error Handling:** Implement graceful error handling, especially for camera permissions and Firebase network calls. Show clear UI feedback (loading spinners, toast notifications).
+- **Security & PDPA:** 
+  - NEVER store raw sensitive personal data in the database.
+  - Store only Document IDs, Holder Names (Masked when displayed), Issue Dates, and SHA-256 Hashes.
+  - Mandatory consent checks before executing any action (Issue or Verify).
+
+## 4. AI Interaction Guidelines
+- **Generate Complete Code:** When asked to write a feature, provide the complete, copy-pasteable code block. Do not leave blank placeholders unless explicitly instructed.
+- **Document the Code:** Add concise JSDoc or inline comments explaining complex logic, especially the hashing algorithms and Firebase queries.
+- **Stay on Topic:** Focus entirely on coding, architecture, and deployment.
