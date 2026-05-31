@@ -13,7 +13,7 @@
 - Framework: Next.js 14 (App Router)
 - Language: TypeScript
 - Styling: Tailwind CSS + shadcn/ui
-- Database & Storage:** Firebase (Firestore, Firebase Storage)
+- Database & Storage:Firebase (Firestore, Firebase Storage)
 - Security: Web Crypto API (SHA-256)
 - Libraries: `html5-qrcode` (สแกนกล้อง), `qrcode.react` (สร้างคิวอาร์โค้ด), `lucide-react` (ไอคอน)
 
