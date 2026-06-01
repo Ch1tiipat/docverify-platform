@@ -43,9 +43,10 @@ interface SidebarNavProps {
   setActiveTab: (tab: string) => void;
   lang: Language;
   onHelpClick: () => void;
+  isMobile?: boolean;
 }
 
-export function SidebarNav({ activeTab, setActiveTab, lang, onHelpClick }: SidebarNavProps) {
+export function SidebarNav({ activeTab, setActiveTab, lang, onHelpClick, isMobile = false }: SidebarNavProps) {
   const [collapsed, setCollapsed] = useState(false);
   const t = translations[lang];
 
@@ -68,7 +69,8 @@ export function SidebarNav({ activeTab, setActiveTab, lang, onHelpClick }: Sideb
       <aside
         className={cn(
           "relative flex h-full flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300",
-          collapsed ? "w-16" : "w-64"
+          isMobile ? "w-64" : (collapsed ? "w-16" : "w-64"),
+          isMobile ? "flex" : "hidden lg:flex"
         )}
       >
         {/* Logo */}
@@ -159,16 +161,18 @@ export function SidebarNav({ activeTab, setActiveTab, lang, onHelpClick }: Sideb
         </div>
 
         {/* Collapse Toggle */}
-        <button
-          onClick={toggleCollapsed}
-          className="absolute -right-3 top-20 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground"
-        >
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </button>
+        {!isMobile && (
+          <button
+            onClick={toggleCollapsed}
+            className="absolute -right-3 top-20 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground"
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </button>
+        )}
       </aside>
     </TooltipProvider>
   );

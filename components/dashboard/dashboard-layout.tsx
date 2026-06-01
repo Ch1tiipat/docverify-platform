@@ -29,6 +29,7 @@ import {
   Upload,
   Shield,
   ScanLine,
+  Menu,
 } from "lucide-react";
 
 // --- Firebase Imports ---
@@ -59,6 +60,7 @@ export function DashboardLayout() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [notificationsRead, setNotificationsRead] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   
   // State สำหรับจัดการการแจ้งเตือนจริงจาก Firebase
   const [realNotifications, setRealNotifications] = useState<any[]>([]);
@@ -182,12 +184,44 @@ export function DashboardLayout() {
         onHelpClick={handleHelpClick}
       />
 
+      {/* Mobile Sidebar Overlay Drawer */}
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300" 
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+          {/* Sidebar drawer content */}
+          <div className="relative z-10 w-64 h-full animate-in slide-in-from-left duration-200">
+            <SidebarNav
+              activeTab={activeTab}
+              setActiveTab={(tab) => {
+                setActiveTab(tab);
+                setMobileSidebarOpen(false);
+              }}
+              lang={lang}
+              onHelpClick={handleHelpClick}
+              isMobile={true}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-border/40 bg-background/80 px-6 backdrop-blur-sm">
           {/* Logo (mobile/tablet) */}
           <div className="flex items-center gap-3 lg:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileSidebarOpen(true)}
+              className="h-9 w-9 text-muted-foreground hover:text-foreground mr-1"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
               <svg
                 viewBox="0 0 24 24"
