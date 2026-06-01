@@ -22,13 +22,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Shield, Upload, FileText, CheckCircle2, Copy, Check, Loader2 } from "lucide-react";
+import { Shield, Upload, FileText, CheckCircle2, Copy, Check, Loader2, Eye } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
 // --- Firebase Imports ---
 import { db, storage } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit } from "firebase/firestore";
-import { ref, uploadBytes } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 interface IssuerPortalProps {
   lang: Language;
@@ -42,6 +42,8 @@ interface IssuedDocument {
   holderNameMasked: string;
   issueDate: string;
   status: string;
+  hash: string;
+  holderEmail?: string;
 }
 
 // 1. ฟังก์ชันสุ่มรหัสเอกสาร
@@ -64,9 +66,10 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
   const [formData, setFormData] = useState({
     title: "",
     holderName: "",
+    holderEmail: "",
     studentId: "",
     major: "",
-    issueDate: "",
+    issueDate: new Date().toISOString().split("T")[0],
   });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -77,9 +80,12 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
   const [copied, setCopied] = useState(false);
   
   const [recentDocs, setRecentDocs] = useState<IssuedDocument[]>([]);
+  const [selectedDoc, setSelectedDoc] = useState<IssuedDocument | null>(null);
+  const [copiedDetail, setCopiedDetail] = useState(false);
   const [generatedData, setGeneratedData] = useState({
     documentId: "",
     hash: "",
+    email: "",
   });
 
   // --- Real-time Database Listener ---
@@ -126,7 +132,7 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
       return;
     }
     
-    if (!selectedFile || !formData.holderName || !formData.title) {
+    if (!selectedFile || !formData.holderName || !formData.title || !formData.holderEmail) {
       alert("Please fill all required fields and upload a document.");
       return;
     }
@@ -149,6 +155,11 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
       const secureFileName = `${newDocId}.${fileExtension}`;
       const storageRef = ref(storage, `documents/${secureFileName}`);
       await uploadBytes(storageRef, selectedFile);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // คำนวณวันหมดอายุ (เช่น 1 ปี นับจากวันที่ออกเอกสาร)
+      const expirationDate = new Date();
+      expirationDate.setFullYear(expirationDate.getFullYear() + 1);
 
       // Step 3: บันทึกข้อมูลลง Firestore (PDPA: ไม่เก็บ Student ID และทำ Masking ชื่อ)
       await addDoc(collection(db, "issuedDocuments"), {
@@ -156,15 +167,55 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
         hash: fileHash,
         title: formData.title,
         holderNameMasked: maskName(formData.holderName),
+        holderEmail: formData.holderEmail,
+        fileURL: downloadURL,
         issueDate: formData.issueDate || new Date().toISOString().split("T")[0],
+        expiresAt: expirationDate.toISOString(),
         status: "valid",
         createdAt: serverTimestamp(),
       });
+
+      // --- Send Real Email via EmailJS if configured ---
+      const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+      const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+      const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+      if (serviceId && serviceId !== "your_service_id_here" && 
+          templateId && templateId !== "your_template_id_here" && 
+          publicKey && publicKey !== "your_public_key_here") {
+        try {
+          await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              service_id: serviceId,
+              template_id: templateId,
+              user_id: publicKey,
+              template_params: {
+                to_name: formData.holderName,
+                to_email: formData.holderEmail,
+                document_id: newDocId,
+                document_title: formData.title,
+                hash_code: fileHash,
+                qr_url: `${window.location.origin}/verify?hash=${fileHash}`,
+                qr_image_url: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${window.location.origin}/verify?hash=${fileHash}`)}`,
+                download_url: downloadURL,
+              },
+            }),
+          });
+          console.log("Email sent successfully!");
+        } catch (mailError) {
+          console.error("Error sending email via EmailJS:", mailError);
+        }
+      }
 
       // Step 4: อัปเดตหน้าจอโชว์ผลลัพธ์
       setGeneratedData({
         documentId: newDocId,
         hash: fileHash,
+        email: formData.holderEmail,
       });
       setIsGenerating(false);
       setShowSuccessModal(true);
@@ -184,10 +235,17 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
 
   const handleIssueAnother = useCallback(() => {
     setShowSuccessModal(false);
-    setFormData({ title: "", holderName: "", studentId: "", major: "", issueDate: "" });
+    setFormData({ 
+      title: "", 
+      holderName: "", 
+      holderEmail: "", 
+      studentId: "", 
+      major: "", 
+      issueDate: new Date().toISOString().split("T")[0] 
+    });
     setSelectedFile(null);
     setConsentChecked(false);
-    setGeneratedData({ documentId: "", hash: "" });
+    setGeneratedData({ documentId: "", hash: "", email: "" });
   }, []);
 
   const formatFileSize = (bytes: number) => {
@@ -233,6 +291,16 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
               />
             </div>
             <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">{t.holderEmail}</label>
+              <Input
+                type="email"
+                value={formData.holderEmail}
+                onChange={(e) => handleInputChange("holderEmail", e.target.value)}
+                placeholder="john.smith@example.com"
+                className="border-border/40 bg-background/50"
+              />
+            </div>
+            <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">{t.studentEmployeeId}</label>
               <Input
                 value={formData.studentId}
@@ -255,8 +323,8 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
               <Input
                 type="date"
                 value={formData.issueDate}
-                onChange={(e) => handleInputChange("issueDate", e.target.value)}
-                className="border-border/40 bg-background/50"
+                disabled
+                className="border-border/40 bg-background/30 text-muted-foreground cursor-not-allowed opacity-80"
               />
             </div>
           </div>
@@ -356,6 +424,7 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
                 <TableHead className="text-muted-foreground">{t.holder}</TableHead>
                 <TableHead className="text-muted-foreground">{t.issueDate}</TableHead>
                 <TableHead className="text-muted-foreground">{t.status}</TableHead>
+                <TableHead className="text-muted-foreground text-right">{lang === "th" ? "การกระทำ" : "Actions"}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -377,6 +446,17 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
                         {doc.status.toUpperCase()}
                       </Badge>
                     </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedDoc(doc)}
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="sr-only">View Details</span>
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -384,6 +464,106 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
           </Table>
         </CardContent>
       </Card>
+
+      {/* View Details History Modal */}
+      <Dialog open={!!selectedDoc} onOpenChange={(open) => { if (!open) setSelectedDoc(null); }}>
+        <DialogContent className="sm:max-w-md border-border/40 bg-card">
+          <DialogHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+              <FileText className="h-10 w-10 text-primary" />
+            </div>
+            <DialogTitle className="text-center text-xl font-bold text-foreground">
+              {lang === "th" ? "รายละเอียดเอกสารรับรอง" : "Certified Document Details"}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              View details, hash, and QR code for previously issued document
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedDoc && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg bg-background/50 p-4">
+                  <p className="text-sm text-muted-foreground">{t.documentId}</p>
+                  <p className="font-semibold text-foreground">{selectedDoc.documentId}</p>
+                </div>
+                <div className="rounded-lg bg-background/50 p-4">
+                  <p className="text-sm text-muted-foreground">{lang === "th" ? "อีเมลผู้ถือเอกสาร" : "Holder Email"}</p>
+                  <p className="font-semibold text-foreground truncate">{selectedDoc.holderEmail || "-"}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg bg-background/50 p-4">
+                  <p className="text-sm text-muted-foreground">{t.holder}</p>
+                  <p className="font-semibold text-foreground">{selectedDoc.holderNameMasked}</p>
+                </div>
+                <div className="rounded-lg bg-background/50 p-4">
+                  <p className="text-sm text-muted-foreground">{t.issueDate}</p>
+                  <p className="font-semibold text-foreground">{selectedDoc.issueDate}</p>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-background/50 p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">{t.shaHash}</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`SHA256:${selectedDoc.hash}`);
+                      setCopiedDetail(true);
+                      setTimeout(() => setCopiedDetail(false), 2000);
+                    }}
+                    className="h-8 px-2"
+                  >
+                    {copiedDetail ? (
+                      <>
+                        <Check className="mr-1 h-4 w-4 text-primary" />
+                        {t.copied}
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="mr-1 h-4 w-4" />
+                        {t.copy}
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <p className="break-all font-mono text-xs text-foreground mt-1">
+                  {selectedDoc.hash}
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center gap-3 rounded-lg bg-background/50 p-4">
+                <div className="rounded-lg bg-white p-3">
+                  <QRCodeSVG 
+                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/verify?hash=${selectedDoc.hash}`} 
+                    size={160}
+                    imageSettings={{
+                      src: "/docverify_logo.png",
+                      x: undefined,
+                      y: undefined,
+                      height: 28,
+                      width: 28,
+                      excavate: true,
+                    }}
+                  />
+                </div>
+                <p className="text-center text-xs text-muted-foreground">{t.qrCaption}</p>
+              </div>
+
+              <Button
+                onClick={() => setSelectedDoc(null)}
+                variant="outline"
+                className="w-full border-border/40 hover:bg-background/50"
+              >
+                {t.close || "Close"}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
@@ -401,9 +581,15 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="rounded-lg bg-background/50 p-4">
-              <p className="text-sm text-muted-foreground">{t.documentId}</p>
-              <p className="font-semibold text-foreground">{generatedData.documentId}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg bg-background/50 p-4">
+                <p className="text-sm text-muted-foreground">{t.documentId}</p>
+                <p className="font-semibold text-foreground">{generatedData.documentId}</p>
+              </div>
+              <div className="rounded-lg bg-background/50 p-4">
+                <p className="text-sm text-muted-foreground">{lang === "th" ? "อีเมลผู้ถือเอกสาร" : "Holder Email"}</p>
+                <p className="font-semibold text-foreground truncate">{generatedData.email}</p>
+              </div>
             </div>
 
             <div className="rounded-lg bg-background/50 p-4">
@@ -435,10 +621,33 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
 
             <div className="flex flex-col items-center gap-3 rounded-lg bg-background/50 p-4">
               <div className="rounded-lg bg-white p-3">
-                {/* สร้าง QR Code จากค่า Hash ตรงๆ เพื่อให้หน้าตรวจสอบนำไปค้นหาได้ */}
-                <QRCodeSVG value={generatedData.hash} size={160} />
+                {/* สร้าง QR Code เป็นลิงก์เว็บสำหรับตรวจสอบ พร้อมฝังโลโก้ตรงกลาง */}
+                <QRCodeSVG 
+                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/verify?hash=${generatedData.hash}`} 
+                  size={160}
+                  imageSettings={{
+                    src: "/docverify_logo.png",
+                    x: undefined,
+                    y: undefined,
+                    height: 28,
+                    width: 28,
+                    excavate: true,
+                  }}
+                />
               </div>
               <p className="text-center text-xs text-muted-foreground">{t.qrCaption}</p>
+              <div className="w-full border-t border-border/40 pt-2 text-center text-xs text-primary font-medium animate-pulse space-y-1">
+                <div>
+                  {lang === "th" 
+                    ? "📧 ส่งค่า Hash และ QR Code ไปยังอีเมลผู้ถือเอกสารแล้ว" 
+                    : "📧 Hash and QR Code sent to holder's email"}
+                </div>
+                <div className="text-[10px] text-muted-foreground">
+                  {lang === "th" 
+                    ? "📎 แนบไฟล์เอกสารต้นฉบับไปด้วยเรียบร้อย" 
+                    : "📎 Original document attached successfully"}
+                </div>
+              </div>
             </div>
 
             <Button

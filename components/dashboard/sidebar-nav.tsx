@@ -10,7 +10,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Fingerprint,
+  History,
 } from "lucide-react";
 import {
   Tooltip,
@@ -29,6 +29,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { id: "overview", labelKey: "overview", icon: <LayoutDashboard className="h-5 w-5" /> },
   { id: "issuer", labelKey: "issuerPortal", icon: <FileUp className="h-5 w-5" /> },
+  { id: "history", labelKey: "historyPortal", icon: <History className="h-5 w-5" /> },
   { id: "verifier", labelKey: "verifierPortal", icon: <ShieldCheck className="h-5 w-5" /> },
 ];
 
@@ -73,7 +74,26 @@ export function SidebarNav({ activeTab, setActiveTab, lang, onHelpClick }: Sideb
         {/* Logo */}
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <Fingerprint className="h-5 w-5 text-primary-foreground" />
+            <svg
+              viewBox="0 0 24 24"
+              className="h-5 w-5 text-primary-foreground"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {/* Professional Shield Outline */}
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              {/* Refined Document with Crease & Rounded Lines */}
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M8.5 9A1 1 0 0 1 9.5 8h3.5l2.5 2.5v6a1.5 1.5 0 0 1-1.5 1.5h-4A1.5 1.5 0 0 1 8.5 16.5V9Zm4.5-1h0.8v1.7h1.7v0.8H13V8Zm-3 3.2h3.5a0.6 0 0 1 0 1.2H10a0.6 0 0 1 0-1.2Zm0 2.2h4a0.6 0 0 1 0 1.2H10a0.6 0 0 1 0-1.2Zm0 2.2h2.5a0.6 0 0 1 0 1.2H10a0.6 0 0 1 0-1.2Z"
+                fill="currentColor"
+                stroke="none"
+              />
+            </svg>
           </div>
           {!collapsed && (
             <div className="flex flex-col">

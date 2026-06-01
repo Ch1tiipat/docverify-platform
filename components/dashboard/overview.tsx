@@ -28,37 +28,6 @@ interface OverviewProps {
   lang: Language;
 }
 
-// 1. Mock Data: สถิติรวม (แสดงสเกลของระบบ)
-const stats = [
-  {
-    labelKey: "documentsIssued" as const,
-    value: "145,231",
-    change: "+12.5%",
-    positive: true,
-    icon: FileText,
-  },
-  {
-    labelKey: "verifications" as const,
-    value: "384,291",
-    change: "+8.2%",
-    positive: true,
-    icon: ShieldCheck,
-  },
-  {
-    labelKey: "successRate" as const,
-    value: "99.7%",
-    change: "+0.3%",
-    positive: true,
-    icon: TrendingUp,
-  },
-  {
-    labelKey: "avgResponse" as const,
-    value: "0.8s",
-    change: "-15%",
-    positive: true,
-    icon: Clock,
-  },
-];
 
 export function Overview({ lang }: OverviewProps) {
   const t = translations[lang];
@@ -66,6 +35,36 @@ export function Overview({ lang }: OverviewProps) {
   // State สำหรับจัดการข้อมูลจริงจาก Firebase
   const [realActivities, setRealActivities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // State สำหรับเก็บข้อมูลสถิติจริงจาก Firebase
+  const [docCount, setDocCount] = useState<number>(0);
+  const [scanCount, setScanCount] = useState<number>(0);
+  const [successRate, setSuccessRate] = useState<number>(100);
+
+  // ดึงข้อมูลสถิติแบบ Real-time
+  useEffect(() => {
+    // 1. นับจำนวนเอกสารที่ออกทั้งหมด
+    const unsubDocs = onSnapshot(collection(db, "issuedDocuments"), (snapshot) => {
+      setDocCount(snapshot.size);
+    });
+
+    // 2. นับจำนวนการสแกนและคำนวณอัตราความสำเร็จ
+    const unsubScans = onSnapshot(collection(db, "scanLogs"), (snapshot) => {
+      const total = snapshot.size;
+      setScanCount(total);
+      if (total > 0) {
+        const validCount = snapshot.docs.filter(doc => doc.data().status === "valid").length;
+        setSuccessRate(Math.round((validCount / total) * 1000) / 10);
+      } else {
+        setSuccessRate(100);
+      }
+    });
+
+    return () => {
+      unsubDocs();
+      unsubScans();
+    };
+  }, []);
 
   // ดึงข้อมูล Real-time จาก Firebase (ตาราง scanLogs)
   useEffect(() => {
@@ -90,6 +89,38 @@ export function Overview({ lang }: OverviewProps) {
 
     return () => unsubscribe();
   }, []);
+
+  // ย้ายสถิติเข้ามาด้านในเพื่อให้สามารถดึงสเตตัสที่เป็น Real-time มาใช้งานได้
+  const stats = [
+    {
+      labelKey: "documentsIssued" as const,
+      value: docCount.toLocaleString(),
+      change: "+12.5%",
+      positive: true,
+      icon: FileText,
+    },
+    {
+      labelKey: "verifications" as const,
+      value: scanCount.toLocaleString(),
+      change: "+8.2%",
+      positive: true,
+      icon: ShieldCheck,
+    },
+    {
+      labelKey: "successRate" as const,
+      value: `${successRate}%`,
+      change: successRate >= 95 ? "+0.3%" : "-1.2%",
+      positive: successRate >= 95,
+      icon: TrendingUp,
+    },
+    {
+      labelKey: "avgResponse" as const,
+      value: "0.5s",
+      change: "-20%",
+      positive: true,
+      icon: Clock,
+    },
+  ];
 
   return (
     <div className="space-y-6">

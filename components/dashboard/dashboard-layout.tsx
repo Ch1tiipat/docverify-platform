@@ -6,6 +6,7 @@ import { translations, type Language } from "@/lib/translations";
 import { SidebarNav } from "./sidebar-nav";
 import { Overview } from "./overview";
 import { IssuerPortal } from "./issuer-portal";
+import { HistoryPortal } from "./history-portal";
 import { VerifierPortal } from "./verifier-portal";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +22,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Fingerprint,
   Sun,
   Moon,
   Bell,
@@ -31,6 +31,27 @@ import {
   ScanLine,
 } from "lucide-react";
 
+// --- Firebase Imports ---
+import { db } from "@/lib/firebase";
+import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+
+function getRelativeTime(timestamp: any, lang: Language) {
+  if (!timestamp) return lang === "th" ? "เมื่อสักครู่" : "Just now";
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  
+  if (diffMins < 1) return lang === "th" ? "เมื่อสักครู่" : "Just now";
+  if (diffMins < 60) return lang === "th" ? `${diffMins} นาทีที่แล้ว` : `${diffMins} min ago`;
+  
+  const diffHrs = Math.floor(diffMins / 60);
+  if (diffHrs < 24) return lang === "th" ? `${diffHrs} ชั่วโมงที่แล้ว` : `${diffHrs} hr ago`;
+  
+  const diffDays = Math.floor(diffHrs / 24);
+  return lang === "th" ? `${diffDays} วันที่แล้ว` : `${diffDays} days ago`;
+}
+
 export function DashboardLayout() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -38,6 +59,9 @@ export function DashboardLayout() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [notificationsRead, setNotificationsRead] = useState(false);
+  
+  // State สำหรับจัดการการแจ้งเตือนจริงจาก Firebase
+  const [realNotifications, setRealNotifications] = useState<any[]>([]);
 
   // Avoid hydration mismatch by only rendering theme-dependent UI after mount
   useEffect(() => {
@@ -45,6 +69,74 @@ export function DashboardLayout() {
   }, []);
 
   const t = translations[lang];
+
+  // ดึงข้อมูลการแจ้งเตือนสดจาก Firebase (ทั้งสแกนและออกเอกสาร)
+  useEffect(() => {
+    let activeDocs: any[] = [];
+    let activeLogs: any[] = [];
+
+    const updateNotifications = () => {
+      const combined = [...activeDocs, ...activeLogs]
+        .sort((a, b) => b.rawTimestamp - a.rawTimestamp)
+        .slice(0, 5)
+        .map((item) => {
+          const relativeTime = getRelativeTime(item.timestamp, lang);
+          return {
+            id: item.id,
+            message: item.message,
+            time: relativeTime,
+            color: item.color
+          };
+        });
+      setRealNotifications(combined);
+    };
+
+    const qDocs = query(collection(db, "issuedDocuments"), orderBy("createdAt", "desc"), limit(5));
+    const unsubDocs = onSnapshot(qDocs, (snapshot) => {
+      activeDocs = snapshot.docs.map(doc => {
+        const data = doc.data();
+        const rawTime = data.createdAt ? data.createdAt.toDate() : new Date();
+        return {
+          id: `doc_${doc.id}`,
+          message: lang === "th" 
+            ? `เอกสารใหม่ถูกออก: ${data.title} (${data.documentId})` 
+            : `New document issued: ${data.title} (${data.documentId})`,
+          timestamp: data.createdAt,
+          rawTimestamp: rawTime.getTime(),
+          color: "bg-blue-500"
+        };
+      });
+      updateNotifications();
+    });
+
+    const qLogs = query(collection(db, "scanLogs"), orderBy("timestamp", "desc"), limit(5));
+    const unsubLogs = onSnapshot(qLogs, (snapshot) => {
+      activeLogs = snapshot.docs.map(doc => {
+        const data = doc.data();
+        const rawTime = data.timestamp ? data.timestamp.toDate() : new Date();
+        const isValid = data.status === "valid";
+        return {
+          id: `scan_${doc.id}`,
+          message: isValid
+            ? (lang === "th" 
+                ? `เอกสาร ${data.documentId} ผ่านการตรวจสอบสำเร็จ` 
+                : `Document ${data.documentId} was verified successfully`)
+            : (lang === "th" 
+                ? `การตรวจสอบเอกสารล้มเหลว` 
+                : `Document verification failed`),
+          timestamp: data.timestamp,
+          rawTimestamp: rawTime.getTime(),
+          color: isValid ? "bg-primary" : "bg-destructive"
+        };
+      });
+      updateNotifications();
+    });
+
+    return () => {
+      unsubDocs();
+      unsubLogs();
+    };
+  }, [lang]);
 
   const toggleLanguage = useCallback(() => {
     setLang((prev) => (prev === "en" ? "th" : "en"));
@@ -61,27 +153,6 @@ export function DashboardLayout() {
   const markAllRead = useCallback(() => {
     setNotificationsRead(true);
   }, []);
-
-  const notifications = [
-    {
-      id: 1,
-      message: t.notification1,
-      time: t.time2min,
-      color: "bg-primary",
-    },
-    {
-      id: 2,
-      message: t.notification2,
-      time: t.time15min,
-      color: "bg-blue-500",
-    },
-    {
-      id: 3,
-      message: t.notification3,
-      time: t.time1hr,
-      color: "bg-amber-500",
-    },
-  ];
 
   const helpSteps = [
     {
@@ -118,7 +189,26 @@ export function DashboardLayout() {
           {/* Logo (mobile/tablet) */}
           <div className="flex items-center gap-3 lg:hidden">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <Fingerprint className="h-5 w-5 text-primary-foreground" />
+              <svg
+                viewBox="0 0 24 24"
+                className="h-5 w-5 text-primary-foreground"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                {/* Professional Shield Outline */}
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                {/* Refined Document with Crease & Rounded Lines */}
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M8.5 9A1 1 0 0 1 9.5 8h3.5l2.5 2.5v6a1.5 1.5 0 0 1-1.5 1.5h-4A1.5 1.5 0 0 1 8.5 16.5V9Zm4.5-1h0.8v1.7h1.7v0.8H13V8Zm-3 3.2h3.5a0.6 0 0 1 0 1.2H10a0.6 0 0 1 0-1.2Zm0 2.2h4a0.6 0 0 1 0 1.2H10a0.6 0 0 1 0-1.2Zm0 2.2h2.5a0.6 0 0 1 0 1.2H10a0.6 0 0 1 0-1.2Z"
+                  fill="currentColor"
+                  stroke="none"
+                />
+              </svg>
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-bold text-foreground">{t.appName}</span>
@@ -175,18 +265,24 @@ export function DashboardLayout() {
                   <h3 className="font-semibold text-foreground">{t.notifications}</h3>
                 </div>
                 <div className="max-h-80 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className="flex items-start gap-3 border-b border-border/40 p-4 last:border-0"
-                    >
-                      <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${notification.color}`} />
-                      <div className="flex-1">
-                        <p className="text-sm text-foreground">{notification.message}</p>
-                        <p className="text-xs text-muted-foreground">{notification.time}</p>
-                      </div>
+                  {realNotifications.length === 0 ? (
+                    <div className="p-6 text-center text-sm text-muted-foreground">
+                      {lang === "th" ? "ไม่มีการแจ้งเตือนใหม่" : "No new notifications"}
                     </div>
-                  ))}
+                  ) : (
+                    realNotifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        className="flex items-start gap-3 border-b border-border/40 p-4 last:border-0"
+                      >
+                        <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${notification.color}`} />
+                        <div className="flex-1">
+                          <p className="text-sm text-foreground">{notification.message}</p>
+                          <p className="text-xs text-muted-foreground">{notification.time}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
                 <div className="border-t border-border/40 p-2">
                   <Button
@@ -217,6 +313,7 @@ export function DashboardLayout() {
         <main className="flex-1 overflow-y-auto p-6">
           {activeTab === "overview" && <Overview lang={lang} />}
           {activeTab === "issuer" && <IssuerPortal lang={lang} />}
+          {activeTab === "history" && <HistoryPortal lang={lang} />}
           {activeTab === "verifier" && <VerifierPortal lang={lang} />}
         </main>
       </div>

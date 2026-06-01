@@ -21,6 +21,7 @@ export const translations = {
     // Sidebar
     overview: "Overview",
     issuerPortal: "Issuer Portal",
+    historyPortal: "Document History",
     verifierPortal: "Verifier Portal",
     
     // Overview Dashboard
@@ -46,6 +47,7 @@ export const translations = {
     documentInfo: "Document Information",
     documentTitle: "Document Title",
     holderName: "Holder Name",
+    holderEmail: "Holder Email",
     studentEmployeeId: "Student ID / Employee ID",
     majorDepartment: "Major / Department",
     issueDate: "Issue Date",
@@ -118,6 +120,7 @@ export const translations = {
     // Sidebar
     overview: "ภาพรวม",
     issuerPortal: "พอร์ทัลผู้ออกเอกสาร",
+    historyPortal: "ประวัติเอกสาร",
     verifierPortal: "พอร์ทัลผู้ตรวจสอบ",
     
     // Overview Dashboard
@@ -143,6 +146,7 @@ export const translations = {
     documentInfo: "ข้อมูลเอกสาร",
     documentTitle: "ชื่อเอกสาร",
     holderName: "ชื่อผู้ถือเอกสาร",
+    holderEmail: "อีเมลผู้ถือเอกสาร",
     studentEmployeeId: "รหัสนักศึกษา / รหัสพนักงาน",
     majorDepartment: "สาขา / แผนก",
     issueDate: "วันที่ออกเอกสาร",

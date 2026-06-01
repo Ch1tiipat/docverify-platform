@@ -143,7 +143,18 @@ export function VerifierPortal({ lang }: VerifierPortalProps) {
       if (selectedMethod === "upload" && selectedFile) {
         hashToVerify = await getFileHash(selectedFile);
       } else if (selectedMethod === "qr" && scannedHash) {
-        hashToVerify = scannedHash;
+        // หาก QR code ที่สแกนได้เป็น URL ให้แกะเอาเฉพาะค่า hash ออกมา
+        let parsedHash = scannedHash;
+        if (scannedHash.includes("hash=")) {
+          try {
+            const urlObj = new URL(scannedHash);
+            parsedHash = urlObj.searchParams.get("hash") || scannedHash;
+          } catch (e) {
+            const match = scannedHash.match(/[?&]hash=([^&]+)/);
+            if (match) parsedHash = match[1];
+          }
+        }
+        hashToVerify = parsedHash;
       } else {
         throw new Error("No data to verify");
       }
@@ -285,9 +296,9 @@ export function VerifierPortal({ lang }: VerifierPortalProps) {
                   {!scannedHash ? (
                     <div id="qr-reader" className="w-full overflow-hidden rounded-lg border-2 border-primary/20 bg-black/5"></div>
                   ) : (
-                    <div className="flex flex-col items-center gap-2 text-primary animate-in fade-in zoom-in duration-300">
-                      <CheckCircle2 className="h-8 w-8" />
-                      <p className="text-sm font-bold">QR Code Scanned!</p>
+                    <div className="flex flex-col items-center gap-2 text-blue-500 dark:text-blue-400 animate-in fade-in zoom-in duration-300">
+                      <QrCode className="h-8 w-8 animate-pulse" />
+                      <p className="text-sm font-bold">QR Code Detected</p>
                       <p className="text-xs text-muted-foreground font-mono truncate max-w-[200px]">{scannedHash}</p>
                     </div>
                   )}
