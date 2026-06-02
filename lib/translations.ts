@@ -91,7 +91,7 @@ export const translations = {
     tryAgain: "Try Again",
     
     // Notifications
-    notification1: "Document DOC-2024-001847 was verified successfully",
+    notification1: "Document DOC-2026-001847 was verified successfully",
     notification2: "New document issued by Admin",
     notification3: "System: Hash database synced",
     time2min: "2 min ago",
@@ -190,7 +190,7 @@ export const translations = {
     tryAgain: "ลองอีกครั้ง",
     
     // Notifications
-    notification1: "เอกสาร DOC-2024-001847 ผ่านการตรวจสอบสำเร็จ",
+    notification1: "เอกสาร DOC-2026-001847 ผ่านการตรวจสอบสำเร็จ",
     notification2: "เอกสารใหม่ออกโดยผู้ดูแลระบบ",
     notification3: "ระบบ: ฐานข้อมูล Hash ซิงค์แล้ว",
     time2min: "2 นาทีที่แล้ว",

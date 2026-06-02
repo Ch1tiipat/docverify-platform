@@ -8,6 +8,8 @@ import { CheckCircle2, XCircle, Loader2, Shield, Home } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import Link from "next/link";
+import { VerifierPortal } from "@/components/dashboard/verifier-portal";
+import { type Language } from "@/lib/translations";
 
 type VerificationState = "loading" | "valid" | "invalid" | "no_hash";
 
@@ -16,6 +18,21 @@ function VerifyContent() {
   const hash = searchParams.get("hash");
 
   const [state, setState] = useState<VerificationState>("loading");
+  const [lang, setLang] = useState<Language>("en");
+  
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedLang = localStorage.getItem("dv_lang") as Language;
+      if (savedLang === "en" || savedLang === "th") {
+        setLang(savedLang);
+      } else {
+        const browserLang = navigator.language || (navigator as any).userLanguage || "";
+        if (browserLang.toLowerCase().startsWith("th")) {
+          setLang("th");
+        }
+      }
+    }
+  }, []);
   const [result, setResult] = useState({
     documentId: "",
     title: "",
@@ -205,23 +222,17 @@ function VerifyContent() {
       )}
 
       {state === "no_hash" && (
-        <Card className="w-full max-w-md border-border/40 bg-card/50 backdrop-blur-sm shadow-xl">
-          <CardContent className="flex flex-col items-center gap-6 p-8">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <Shield className="h-8 w-8 text-primary" />
-            </div>
-            <div className="text-center space-y-1">
-              <h2 className="text-xl font-bold">ไม่พบรหัสความปลอดภัย</h2>
-              <p className="text-sm text-muted-foreground">กรุณาสแกน QR Code จากเอกสารที่ถูกต้องเพื่อทำรายการตรวจสอบ</p>
-            </div>
-            <Button asChild className="w-full bg-primary text-primary-foreground">
+        <div className="w-full max-w-4xl bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/40 shadow-xl relative">
+          <VerifierPortal lang={lang} />
+          <div className="absolute top-6 right-6">
+            <Button asChild size="sm" variant="outline" className="border-border/40 hover:bg-background/50">
               <Link href="/">
-                <Home className="mr-2 h-4 w-4" />
-                ไปที่หน้าหลักระบบ
+                <Home className="mr-1.5 h-4 w-4" />
+                {lang === "th" ? "แดชบอร์ดระบบ" : "Go to Dashboard"}
               </Link>
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

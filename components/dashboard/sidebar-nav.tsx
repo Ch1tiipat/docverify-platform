@@ -30,7 +30,6 @@ const navItems: NavItem[] = [
   { id: "overview", labelKey: "overview", icon: <LayoutDashboard className="h-5 w-5" /> },
   { id: "issuer", labelKey: "issuerPortal", icon: <FileUp className="h-5 w-5" /> },
   { id: "history", labelKey: "historyPortal", icon: <History className="h-5 w-5" /> },
-  { id: "verifier", labelKey: "verifierPortal", icon: <ShieldCheck className="h-5 w-5" /> },
 ];
 
 // ลบปุ่ม Help ออกจากกลุ่มเมนูด้านล่าง เหลือแค่ Settings
@@ -56,10 +55,7 @@ export function SidebarNav({ activeTab, setActiveTab, lang, onHelpClick, isMobil
 
   const handleNavClick = useCallback(
     (id: string) => {
-      // ตัดเงื่อนไขปุ่ม Help ออกไป เพราะเราลบปุ่มไปแล้ว
-      if (id !== "settings") {
-        setActiveTab(id);
-      }
+      setActiveTab(id);
     },
     [setActiveTab]
   );
@@ -140,24 +136,35 @@ export function SidebarNav({ activeTab, setActiveTab, lang, onHelpClick, isMobil
 
         {/* Bottom Nav */}
         <div className="space-y-1 border-t border-sidebar-border p-3">
-          {bottomNavItems.map((item) => (
-            <Tooltip key={item.id}>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => handleNavClick(item.id)}
-                  className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                >
-                  {item.icon}
-                  {!collapsed && <span>{t[item.labelKey]}</span>}
-                </button>
-              </TooltipTrigger>
-              {collapsed && (
-                <TooltipContent side="right" className="font-medium">
-                  {t[item.labelKey]}
-                </TooltipContent>
-              )}
-            </Tooltip>
-          ))}
+          {bottomNavItems.map((item) => {
+            const isActive = activeTab === item.id;
+            return (
+              <Tooltip key={item.id}>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => handleNavClick(item.id)}
+                    className={cn(
+                      "group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                    )}
+                  >
+                    {isActive && (
+                      <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
+                    )}
+                    <span className={cn(isActive && "text-primary")}>{item.icon}</span>
+                    {!collapsed && <span>{t[item.labelKey]}</span>}
+                  </button>
+                </TooltipTrigger>
+                {collapsed && (
+                  <TooltipContent side="right" className="font-medium">
+                    {t[item.labelKey]}
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            );
+          })}
         </div>
 
         {/* Collapse Toggle */}

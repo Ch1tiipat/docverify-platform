@@ -49,7 +49,8 @@ interface IssuedDocument {
 // 1. ฟังก์ชันสุ่มรหัสเอกสาร
 function generateDocumentId(): string {
   const num = Math.floor(Math.random() * 10000) + 1848;
-  return `DOC-2024-${String(num).padStart(6, "0")}`;
+  const currentYear = new Date().getFullYear();
+  return `DOC-${currentYear}-${String(num).padStart(6, "0")}`;
 }
 
 // 2. ฟังก์ชันเซ็นเซอร์ชื่อ (PDPA Compliance) เช่น "John Smith" -> "J*** S***"
@@ -305,7 +306,7 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
               <Input
                 value={formData.studentId}
                 onChange={(e) => handleInputChange("studentId", e.target.value)}
-                placeholder="STU-2024-12345"
+                placeholder="STU-2026-12345"
                 className="border-border/40 bg-background/50"
               />
             </div>

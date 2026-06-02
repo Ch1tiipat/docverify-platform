@@ -7,7 +7,7 @@ import { SidebarNav } from "./sidebar-nav";
 import { Overview } from "./overview";
 import { IssuerPortal } from "./issuer-portal";
 import { HistoryPortal } from "./history-portal";
-import { VerifierPortal } from "./verifier-portal";
+import { SettingsPortal } from "./settings-portal";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -331,6 +331,19 @@ export function DashboardLayout() {
               </PopoverContent>
             </Popover>
 
+            {/* Go to Verify Portal */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.location.href = "/verify"}
+              className="h-9 gap-1.5 rounded-full border-border/40 hover:bg-background/50 text-muted-foreground hover:text-foreground"
+            >
+              <ScanLine className="h-4 w-4 text-primary" />
+              <span className="text-xs font-medium">
+                {lang === "th" ? "หน้าตรวจสอบสาธารณะ" : "Public Verify"}
+              </span>
+            </Button>
+
             {/* Help */}
             <Button
               variant="ghost"
@@ -348,7 +361,7 @@ export function DashboardLayout() {
           {activeTab === "overview" && <Overview lang={lang} />}
           {activeTab === "issuer" && <IssuerPortal lang={lang} />}
           {activeTab === "history" && <HistoryPortal lang={lang} />}
-          {activeTab === "verifier" && <VerifierPortal lang={lang} />}
+          {activeTab === "settings" && <SettingsPortal lang={lang} setLang={setLang} />}
         </main>
       </div>
 
