@@ -333,7 +333,7 @@ export function SettingsPortal({ lang, setLang }: SettingsPortalProps) {
               <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-foreground">
-                    {isThai ? "บันทึกข้อมูลการสแกน (Firestore)" : "Log Scans on Firestore"}
+                    {isThai ? "บันทึกข้อมูลการสแกน" : "Log Scans on Firestore"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {isThai ? "จัดเก็บประวัติการตรวจสอบเพื่อแสดงข้อมูลบนหน้าบอร์ดควบคุม" : "Store check timestamps in Firebase for statistics updates"}
@@ -348,7 +348,7 @@ export function SettingsPortal({ lang, setLang }: SettingsPortalProps) {
               <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-foreground">
-                    {isThai ? "การยินยอมข้อมูลส่วนบุคคล (PDPA)" : "Mandatory PDPA Consent Check"}
+                    {isThai ? "การยินยอมข้อมูลส่วนบุคคล" : "Mandatory PDPA Consent Check"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {isThai ? "กำหนดให้ผู้ใช้งานยอมรับเงื่อนไขทุกครั้งก่อนจะอัปโหลดหรือเปิดสแกนกล้อง" : "Forced consent validation before verifiers can search or activate cameras"}
@@ -357,50 +357,6 @@ export function SettingsPortal({ lang, setLang }: SettingsPortalProps) {
                 <Switch 
                   checked={requireConsent}
                   onCheckedChange={setRequireConsent}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Scanner Preferences */}
-          <Card className="border-border/40 bg-card/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
-                <Camera className="h-5 w-5 text-primary" />
-                {isThai ? "ตั้งค่าระบบสแกนกล้อง" : "Scanner Preferences"}
-              </CardTitle>
-              <CardDescription>
-                {isThai ? "ปรับแต่งการทำสแกนคิวอาร์โค้ด" : "Fine-tune local QR scanning configuration"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground">
-                    {isThai ? "เสียงตอบรับเมื่อสแกนสำเร็จ" : "Scanner Sound FX"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {isThai ? "เล่นเสียงสั้นตอบรับเมื่อสแกน QR Code ติดเรียบร้อย" : "Play a quick sound notification whenever a barcode triggers verification"}
-                  </p>
-                </div>
-                <Switch 
-                  checked={scanSound}
-                  onCheckedChange={setScanSound}
-                />
-              </div>
-
-              <div className="flex items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground">
-                    {isThai ? "โหมดหาโฟกัสอัตโนมัติ" : "Camera Auto-Focus Focus Mode"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {isThai ? "ให้สิทธิ์ตัวกล้องปรับระยะโฟกัสอัติโนมัติเพื่อสแกนได้รวดเร็วขึ้น" : "Direct hardware scan engine to aggressively focus standard cameras"}
-                  </p>
-                </div>
-                <Switch 
-                  checked={autoFocusCamera}
-                  onCheckedChange={setAutoFocusCamera}
                 />
               </div>
             </CardContent>

@@ -6,8 +6,9 @@ import { translations, type Language } from "@/lib/translations";
 import { SidebarNav } from "./sidebar-nav";
 import { Overview } from "./overview";
 import { IssuerPortal } from "./issuer-portal";
-import { HistoryPortal } from "./history-portal";
 import { SettingsPortal } from "./settings-portal";
+import { VerifierPortal } from "./verifier-portal";
+import { HistoryPortal } from "./history-portal";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -140,13 +141,12 @@ export function DashboardLayout() {
     };
   }, [lang]);
 
-  const toggleLanguage = useCallback(() => {
-    setLang((prev) => (prev === "en" ? "th" : "en"));
+  const changeLanguage = useCallback((newLang: Language) => {
+    setLang(newLang);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("dv_lang", newLang);
+    }
   }, []);
-
-  const toggleTheme = useCallback(() => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
-  }, [resolvedTheme, setTheme]);
 
   const handleHelpClick = useCallback(() => {
     setShowHelpModal(true);
@@ -254,31 +254,6 @@ export function DashboardLayout() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
-            {/* Language Toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleLanguage}
-              className="h-9 gap-2 rounded-full px-3"
-            >
-              <span className="flex h-6 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                {lang.toUpperCase()}
-              </span>
-            </Button>
-
-            {/* Theme Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="h-9 w-9 rounded-full"
-            >
-              {mounted && resolvedTheme === "dark" ? (
-                <Sun className="h-5 w-5 text-muted-foreground" />
-              ) : (
-                <Moon className="h-5 w-5 text-muted-foreground" />
-              )}
-            </Button>
 
             {/* Notifications */}
             <Popover>
@@ -361,7 +336,8 @@ export function DashboardLayout() {
           {activeTab === "overview" && <Overview lang={lang} />}
           {activeTab === "issuer" && <IssuerPortal lang={lang} />}
           {activeTab === "history" && <HistoryPortal lang={lang} />}
-          {activeTab === "settings" && <SettingsPortal lang={lang} setLang={setLang} />}
+          {activeTab === "verifier" && <VerifierPortal lang={lang} />}
+          {activeTab === "settings" && <SettingsPortal lang={lang} setLang={changeLanguage} />}
         </main>
       </div>
 

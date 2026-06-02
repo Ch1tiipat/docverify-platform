@@ -9,6 +9,7 @@ import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import Link from "next/link";
 import { VerifierPortal } from "@/components/dashboard/verifier-portal";
+import { PdfTools } from "@/components/dashboard/pdf-tools";
 import { type Language } from "@/lib/translations";
 
 type VerificationState = "loading" | "valid" | "invalid" | "no_hash";
@@ -222,15 +223,18 @@ function VerifyContent() {
       )}
 
       {state === "no_hash" && (
-        <div className="w-full max-w-4xl bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/40 shadow-xl relative">
-          <VerifierPortal lang={lang} />
-          <div className="absolute top-6 right-6">
+        <div className="w-full max-w-4xl bg-card/30 backdrop-blur-sm p-6 rounded-2xl border border-border/40 shadow-xl space-y-4">
+          <div className="flex justify-end">
             <Button asChild size="sm" variant="outline" className="border-border/40 hover:bg-background/50">
               <Link href="/">
                 <Home className="mr-1.5 h-4 w-4" />
                 {lang === "th" ? "แดชบอร์ดระบบ" : "Go to Dashboard"}
               </Link>
             </Button>
+          </div>
+          <VerifierPortal lang={lang} />
+          <div className="border-t border-border/40 pt-8 mt-8">
+            <PdfTools lang={lang} />
           </div>
         </div>
       )}

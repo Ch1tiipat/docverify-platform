@@ -23,6 +23,8 @@ export const translations = {
     issuerPortal: "Issuer Portal",
     historyPortal: "Document History",
     verifierPortal: "Verifier Portal",
+    pdfTools: "PDF Tools Suite",
+    hrPortal: "HR Portal",
     
     // Overview Dashboard
     documentsIssued: "Documents Issued",
@@ -122,6 +124,8 @@ export const translations = {
     issuerPortal: "พอร์ทัลผู้ออกเอกสาร",
     historyPortal: "ประวัติเอกสาร",
     verifierPortal: "พอร์ทัลผู้ตรวจสอบ",
+    pdfTools: "เครื่องมือจัดการ PDF",
+    hrPortal: "พอร์ทัล HR",
     
     // Overview Dashboard
     documentsIssued: "เอกสารที่ออก",

@@ -11,6 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
   History,
+  FileText,
+  Briefcase,
 } from "lucide-react";
 import {
   Tooltip,
@@ -30,6 +32,7 @@ const navItems: NavItem[] = [
   { id: "overview", labelKey: "overview", icon: <LayoutDashboard className="h-5 w-5" /> },
   { id: "issuer", labelKey: "issuerPortal", icon: <FileUp className="h-5 w-5" /> },
   { id: "history", labelKey: "historyPortal", icon: <History className="h-5 w-5" /> },
+  { id: "verifier", labelKey: "verifierPortal", icon: <ShieldCheck className="h-5 w-5" /> },
 ];
 
 // ลบปุ่ม Help ออกจากกลุ่มเมนูด้านล่าง เหลือแค่ Settings
