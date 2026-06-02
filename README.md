@@ -55,20 +55,6 @@
 
 2. **กำหนดค่าสภาพแวดล้อม (.env.local):**
    สร้างไฟล์ชื่อ `.env.local` ไว้ที่โฟลเดอร์นอกสุดของโปรเจกต์ และใส่ค่าเชื่อมโยงดังนี้:
-   ```env
-   # Firebase Configuration
-   NEXT_PUBLIC_FIREBASE_API_KEY="AIzaSy..."
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="docverify-platform.firebaseapp.com"
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID="docverify-platform"
-   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="docverify-platform.firebasestorage.app"
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="..."
-   NEXT_PUBLIC_FIREBASE_APP_ID="..."
-
-   # EmailJS Configuration
-   NEXT_PUBLIC_EMAILJS_SERVICE_ID="service_..."
-   NEXT_PUBLIC_EMAILJS_TEMPLATE_ID="template_..."
-   NEXT_PUBLIC_EMAILJS_PUBLIC_KEY="LLxt..."
-   ```
 
 3. **เริ่มระบบทดสอบ:**
    ```bash
