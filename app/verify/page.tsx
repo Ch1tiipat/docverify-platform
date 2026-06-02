@@ -9,7 +9,6 @@ import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import Link from "next/link";
 import { VerifierPortal } from "@/components/dashboard/verifier-portal";
-import { PdfTools } from "@/components/dashboard/pdf-tools";
 import { type Language } from "@/lib/translations";
 
 type VerificationState = "loading" | "valid" | "invalid" | "no_hash";
@@ -233,9 +232,6 @@ function VerifyContent() {
             </Button>
           </div>
           <VerifierPortal lang={lang} />
-          <div className="border-t border-border/40 pt-8 mt-8">
-            <PdfTools lang={lang} />
-          </div>
         </div>
       )}
     </div>

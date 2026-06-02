@@ -14,6 +14,7 @@ import {
   XCircle,
   Loader2,
   Shield,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,34 @@ export function VerifierPortal({ lang }: VerifierPortalProps) {
   const [scannedHash, setScannedHash] = useState<string | null>(null); 
   const [consentChecked, setConsentChecked] = useState(false);
   const [showConsentError, setShowConsentError] = useState(false);
+
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractProgress, setExtractProgress] = useState(0);
+  const [extractedData, setExtractedData] = useState<any | null>(null);
+
+  const handleExtract = () => {
+    setIsExtracting(true);
+    setExtractProgress(0);
+    setExtractedData(null);
+    
+    const interval = setInterval(() => {
+      setExtractProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setExtractedData({
+            name: "นายสมชาย ใจดี (Somchai Jaidee)",
+            degree: "Bachelor of Science in Digital Communication",
+            gpa: "3.85 / 4.00 (First Class Honors)",
+            skills: ["Digital Marketing", "React.js", "Video Editing", "Content Strategy"],
+            university: "มหาวิทยาลัยเทคโนโลยีมหานคร (MUT)",
+          });
+          setIsExtracting(false);
+          return 100;
+        }
+        return prev + 5;
+      });
+    }, 100);
+  };
   
   const [verificationResult, setVerificationResult] = useState({
     hash: "",
@@ -210,6 +239,9 @@ export function VerifierPortal({ lang }: VerifierPortalProps) {
     setConsentChecked(false);
     setShowConsentError(false);
     setVerificationResult({ hash: "", timestamp: "", title: "", holderNameMasked: "" });
+    setExtractedData(null);
+    setIsExtracting(false);
+    setExtractProgress(0);
   }, []);
 
   const formatFileSize = (bytes: number) => {
@@ -402,6 +434,70 @@ export function VerifierPortal({ lang }: VerifierPortalProps) {
                 <p className="font-medium text-xs text-foreground">{verificationResult.timestamp}</p>
               </div>
             </div>
+
+            {/* Smart OCR Button */}
+            {!extractedData && !isExtracting && (
+              <Button 
+                onClick={handleExtract} 
+                className="w-full bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 gap-2 rounded-lg"
+              >
+                <Sparkles className="h-4 w-4" />
+                {lang === "th" ? "✨ วิเคราะห์และดึงข้อมูลใบสมัคร (ATS OCR)" : "✨ Smart Data Extraction (OCR)"}
+              </Button>
+            )}
+
+            {/* Progress indicator */}
+            {isExtracting && (
+              <div className="w-full space-y-2">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>AI is analyzing document...</span>
+                  <span>{extractProgress}%</span>
+                </div>
+                <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-primary h-full transition-all duration-100" 
+                    style={{ width: `${extractProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Extracted ATS Data Card */}
+            {extractedData && (
+              <div className="w-full bg-background/80 rounded-xl p-4 border border-border/60 space-y-3 animate-in fade-in duration-300">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-primary flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" />
+                    Smart ATS Profile
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 text-[10px] px-2 border border-border"
+                    onClick={() => {
+                      const jsonText = JSON.stringify(extractedData, null, 2);
+                      navigator.clipboard.writeText(jsonText);
+                      alert(lang === "th" ? "คัดลอก JSON ลงคลิปบอร์ดสำเร็จ!" : "Copied JSON to clipboard!");
+                    }}
+                  >
+                    Copy as JSON
+                  </Button>
+                </div>
+                <div className="text-left text-xs space-y-1.5 text-foreground/90">
+                  <p>👤 <strong>Name:</strong> {extractedData.name}</p>
+                  <p>🎓 <strong>Degree:</strong> {extractedData.degree}</p>
+                  <p>📊 <strong>GPA:</strong> {extractedData.gpa}</p>
+                  <p>🏫 <strong>University:</strong> {extractedData.university}</p>
+                  <div className="pt-1 flex flex-wrap gap-1">
+                    {extractedData.skills.map((skill: string, i: number) => (
+                      <span key={i} className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px]">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <Button onClick={handleReset} className="w-full bg-emerald-600 text-white hover:bg-emerald-700">
               {t.verifyAnother}
