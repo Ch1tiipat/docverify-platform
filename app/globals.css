@@ -4,24 +4,24 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #ffffff;
+  --background: #f0f7ff; /* Soft sky blue background */
   --foreground: #0f172a;
-  --card: #ffffff;
+  --card: #ffffff; /* Clean white cards for contrast */
   --card-foreground: #0f172a;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
-  --primary: #1e3a8a;
+  --primary: #1e3a8a; /* Deep blue primary */
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
+  --secondary: #e0f2fe; /* Light sky blue secondary */
+  --secondary-foreground: #1e3a8a;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
+  --accent: #e0f2fe;
+  --accent-foreground: #1e3a8a;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
+  --border: #cbd5e1;
+  --input: #cbd5e1;
   --ring: #1e3a8a;
   --chart-1: #1e3a8a;
   --chart-2: #3b82f6;
@@ -29,13 +29,13 @@
   --chart-4: #60a5fa;
   --chart-5: #93c5fd;
   --radius: 0.625rem;
-  --sidebar: #f8fafc;
+  --sidebar: #f0f9ff; /* Soft sky blue sidebar */
   --sidebar-foreground: #0f172a;
   --sidebar-primary: #1e3a8a;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9;
+  --sidebar-accent: #e0f2fe;
   --sidebar-accent-foreground: #1e3a8a;
-  --sidebar-border: #e2e8f0;
+  --sidebar-border: #bae6fd;
   --sidebar-ring: #1e3a8a;
 }
 
