@@ -32,6 +32,7 @@ import {
   Shield,
   ScanLine,
   Menu,
+  Zap,
 } from "lucide-react";
 
 // --- Firebase Imports ---
@@ -61,6 +62,7 @@ export function DashboardLayout() {
   const [lang, setLang] = useState<Language>("en");
   const [activeTab, setActiveTab] = useState("overview");
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [notificationsRead, setNotificationsRead] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   
@@ -255,6 +257,16 @@ export function DashboardLayout() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
+            {/* Upgrade Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowUpgradeModal(true)}
+              className="h-9 gap-1.5 rounded-full border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold"
+            >
+              <Zap className="h-4 w-4 animate-pulse fill-primary" />
+              <span>{lang === "th" ? "อัปเกรดบริการ" : "Upgrade Plan"}</span>
+            </Button>
 
             {/* Notifications */}
             <Popover>
@@ -338,10 +350,18 @@ export function DashboardLayout() {
           {activeTab === "issuer" && <IssuerPortal lang={lang} />}
           {activeTab === "history" && <HistoryPortal lang={lang} />}
           {activeTab === "verifier" && <VerifierPortal lang={lang} />}
-          {activeTab === "packages" && <PackagesPortal lang={lang} />}
           {activeTab === "settings" && <SettingsPortal lang={lang} setLang={changeLanguage} />}
         </main>
       </div>
+
+      {/* Upgrade / Pricing Packages Modal */}
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="max-w-5xl bg-background/95 border-border/40 backdrop-blur-md overflow-y-auto max-h-[90vh] no-scrollbar">
+          <div className="py-4">
+            <PackagesPortal lang={lang} />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Help Modal */}
       <Dialog open={showHelpModal} onOpenChange={setShowHelpModal}>
