@@ -25,6 +25,7 @@ export const translations = {
     verifierPortal: "Verifier Portal",
     pdfTools: "PDF Tools Suite",
     hrPortal: "HR Portal",
+    packages: "Service Packages",
     
     // Overview Dashboard
     documentsIssued: "Documents Issued",
@@ -126,6 +127,7 @@ export const translations = {
     verifierPortal: "พอร์ทัลผู้ตรวจสอบ",
     pdfTools: "เครื่องมือจัดการ PDF",
     hrPortal: "พอร์ทัล HR",
+    packages: "แพ็กเกจบริการ",
     
     // Overview Dashboard
     documentsIssued: "เอกสารที่ออก",

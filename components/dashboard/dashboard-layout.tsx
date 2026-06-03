@@ -9,6 +9,7 @@ import { IssuerPortal } from "./issuer-portal";
 import { SettingsPortal } from "./settings-portal";
 import { VerifierPortal } from "./verifier-portal";
 import { HistoryPortal } from "./history-portal";
+import { PackagesPortal } from "./packages-portal";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -337,6 +338,7 @@ export function DashboardLayout() {
           {activeTab === "issuer" && <IssuerPortal lang={lang} />}
           {activeTab === "history" && <HistoryPortal lang={lang} />}
           {activeTab === "verifier" && <VerifierPortal lang={lang} />}
+          {activeTab === "packages" && <PackagesPortal lang={lang} />}
           {activeTab === "settings" && <SettingsPortal lang={lang} setLang={changeLanguage} />}
         </main>
       </div>
