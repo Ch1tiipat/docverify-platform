@@ -24,6 +24,7 @@ export function PackagesPortal({ lang }: PackagesPortalProps) {
     setSelectedPlan(plan);
     setContactForm({ name: "", email: "", company: "", message: "" });
     setSubmitted(false);
+    setShowQuoteModal(true);
   };
 
   const handleContactSubmit = (e: React.FormEvent) => {
@@ -349,6 +350,17 @@ export function PackagesPortal({ lang }: PackagesPortalProps) {
                   className="bg-background/50 border-border/40 text-xs h-8" 
                 />
               </div>
+              {selectedPlan.toLowerCase().includes("diamond") && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-foreground">{isThai ? "ข้อความถึงวิศวกรระบบ" : "Message to System Engineers"}</label>
+                  <textarea
+                    value={contactForm.message}
+                    onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                    placeholder={isThai ? "ระบุข้อมูลระบบเดิม หรือรายละเอียดสเปกคลาวด์/API ที่ต้องการเชื่อมต่อ..." : "Specify your cloud environment, SLA requirements, or API specifications..."}
+                    className="flex w-full rounded-md border border-border/40 bg-background/50 px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[60px] max-h-[120px] text-foreground"
+                  />
+                </div>
+              )}
               <DialogFooter className="pt-3 gap-1.5 sm:gap-0">
                 <Button 
                   type="button" 
