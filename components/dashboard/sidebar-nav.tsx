@@ -75,8 +75,8 @@ export function SidebarNav({ activeTab, setActiveTab, lang, onHelpClick, isMobil
       >
         {/* Logo */}
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-background">
-            <img src="/docverify_logo.png" alt="Logo" className="h-7 w-7 object-contain" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-transparent">
+            <img src="/docverify_logo.png?v=2" alt="Logo" className="h-7 w-7 object-contain" />
           </div>
           {!collapsed && (
             <div className="flex flex-col">

@@ -227,8 +227,8 @@ export function DashboardLayout() {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-background">
-              <img src="/docverify_logo.png" alt="Logo" className="h-7 w-7 object-contain" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-transparent">
+              <img src="/docverify_logo.png?v=2" alt="Logo" className="h-7 w-7 object-contain" />
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-bold text-foreground">{t.appName}</span>

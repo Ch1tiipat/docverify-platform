@@ -867,7 +867,7 @@ export function IssuerPortal({ lang, setActiveTab }: IssuerPortalProps) {
                     value={`${typeof window !== 'undefined' ? window.location.origin : ''}/verify?hash=${selectedDoc.hash}`} 
                     size={160}
                     imageSettings={{
-                      src: "/docverify_logo.png",
+                      src: "/docverify_logo.png?v=2",
                       x: undefined,
                       y: undefined,
                       height: 28,
@@ -952,7 +952,7 @@ export function IssuerPortal({ lang, setActiveTab }: IssuerPortalProps) {
                   value={`${typeof window !== 'undefined' ? window.location.origin : ''}/verify?hash=${generatedData.hash}`} 
                   size={160}
                   imageSettings={{
-                    src: "/docverify_logo.png",
+                    src: "/docverify_logo.png?v=2",
                     x: undefined,
                     y: undefined,
                     height: 28,
