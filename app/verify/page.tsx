@@ -9,9 +9,12 @@ import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import Link from "next/link";
 import { VerifierPortal } from "@/components/dashboard/verifier-portal";
+import { PackagesPortal } from "@/components/dashboard/packages-portal";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { type Language } from "@/lib/translations";
+import { Zap, Sparkles } from "lucide-react";
 
-type VerificationState = "loading" | "valid" | "invalid" | "no_hash";
+type VerificationState = "loading" | "valid" | "invalid" | "no_hash" | "limit_exceeded";
 
 function VerifyContent() {
   const searchParams = useSearchParams();
@@ -19,6 +22,8 @@ function VerifyContent() {
 
   const [state, setState] = useState<VerificationState>("loading");
   const [lang, setLang] = useState<Language>("en");
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const isThai = lang === "th";
   
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -50,6 +55,28 @@ function VerifyContent() {
 
     const verifyHash = async () => {
       try {
+        // --- Limit Check for Non-Members ---
+        const isAuthorizedMember = localStorage.getItem("dv_auth_token") === "docverify_hr_secret_2026";
+        if (!isAuthorizedMember) {
+          const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+          const lastDate = localStorage.getItem("dv_last_verify_date");
+          let count = parseInt(localStorage.getItem("dv_verify_count") || "0", 10);
+          
+          if (lastDate !== today) {
+            count = 0;
+            localStorage.setItem("dv_last_verify_date", today);
+            localStorage.setItem("dv_verify_count", "0");
+          }
+          
+          if (count >= 5) {
+            setState("limit_exceeded");
+            return;
+          }
+          
+          // Increment count
+          localStorage.setItem("dv_verify_count", String(count + 1));
+        }
+
         const q = query(
           collection(db, "issuedDocuments"),
           where("hash", "==", hash),
@@ -214,6 +241,46 @@ function VerifyContent() {
                 <Link href="/">
                   <Home className="mr-2 h-4 w-4" />
                   กลับไปหน้าหลัก
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {state === "limit_exceeded" && (
+        <Card className="w-full max-w-md border-2 border-amber-500 bg-amber-500/5 backdrop-blur-sm shadow-amber-500/10 shadow-2xl animate-in zoom-in-95 duration-200">
+          <CardContent className="flex flex-col items-center gap-6 p-8">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-500/20">
+              <Zap className="h-12 w-12 text-amber-500 fill-amber-500 animate-pulse" />
+            </div>
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-extrabold text-amber-500 tracking-wide uppercase">Daily Limit Reached</h2>
+              <p className="text-base font-bold text-foreground">
+                {isThai ? "สิทธิ์การตรวจสอบของคุณหมดแล้วสำหรับวันนี้" : "Your free limit has run out today"}
+              </p>
+              <p className="text-xs text-muted-foreground leading-normal">
+                {isThai 
+                  ? "ผู้ใช้งานฟรีจำกัดการตรวจสอบเอกสารได้ 5 ครั้งต่อวัน โควตาจะรีเซ็ตทุกเที่ยงคืน (00:00 น.) หากต้องการสแกนโดยไม่มีขีดจำกัด กรุณาพิจารณาอัปเกรดเป็นแพ็กเกจพรีเมียม"
+                  : "Free tier users are limited to 5 verifications daily. Limits reset at midnight (00:00). For unlimited checks and AI deep scan tools, upgrade to a Premium plan."}
+              </p>
+            </div>
+
+            <div className="w-full space-y-3 pt-2">
+              <Button 
+                asChild
+                className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white font-bold h-10 rounded-lg hover:opacity-95"
+              >
+                <Link href="/pricing">
+                  <Sparkles className="mr-2 h-4 w-4 fill-white" />
+                  {isThai ? "อัปเกรดเพื่อสแกนไม่จำกัด" : "Upgrade to Pro / Premium"}
+                </Link>
+              </Button>
+              
+              <Button asChild variant="outline" className="w-full border-border/40 hover:bg-background/50 text-xs h-10">
+                <Link href="/">
+                  <Home className="mr-2 h-4 w-4" />
+                  {isThai ? "กลับไปหน้าหลัก" : "Go to Homepage"}
                 </Link>
               </Button>
             </div>

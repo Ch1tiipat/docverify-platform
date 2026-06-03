@@ -73,6 +73,43 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
     major: "",
     issueDate: new Date().toISOString().split("T")[0],
   });
+
+  const [userPlan, setUserPlan] = useState<string | null>(null);
+  const [issueCount, setIssueCount] = useState(0);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const isThai = lang === "th";
+
+  // Check Subscription and Quota limit
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const plan = localStorage.getItem("dv_user_plan") || "none";
+      setUserPlan(plan);
+
+      // If user has a plan (gold, platinum, diamond), they bypass limits
+      if (plan && plan !== "none") {
+        setIsBlocked(false);
+        return;
+      }
+
+      const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+      const lastDate = localStorage.getItem("dv_last_issue_date");
+      let count = parseInt(localStorage.getItem("dv_issue_count") || "0", 10);
+
+      if (lastDate !== today) {
+        count = 0;
+        localStorage.setItem("dv_last_issue_date", today);
+        localStorage.setItem("dv_issue_count", "0");
+      }
+
+      setIssueCount(count);
+      if (count >= 5) {
+        setIsBlocked(true);
+      } else {
+        setIsBlocked(false);
+      }
+    }
+  }, [showUpgradeModal]);
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filesToMerge, setFilesToMerge] = useState<File[]>([]);
@@ -190,6 +227,14 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
 
   // --- Core Logic: Generate Hash & Save to Firebase ---
   const handleGenerate = async () => {
+    if (!userPlan || userPlan === "none") {
+      if (issueCount >= 5) {
+        setIsBlocked(true);
+        setShowUpgradeModal(true);
+        return;
+      }
+    }
+
     if (!consentChecked) {
       setShowConsentError(true);
       return;
@@ -280,6 +325,17 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
         hash: fileHash,
         email: formData.holderEmail,
       });
+
+      // Increment free-tier quota
+      if (!userPlan || userPlan === "none") {
+        const newCount = issueCount + 1;
+        localStorage.setItem("dv_issue_count", String(newCount));
+        setIssueCount(newCount);
+        if (newCount >= 5) {
+          setIsBlocked(true);
+        }
+      }
+
       setIsGenerating(false);
       setShowSuccessModal(true);
 
@@ -318,15 +374,71 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{t.issueDocument}</h1>
-        <p className="text-muted-foreground">{t.issueDocumentDesc}</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">{t.issueDocument}</h1>
+          <p className="text-muted-foreground">{t.issueDocumentDesc}</p>
+        </div>
+
+        {/* Subscription & Quota Badge Display */}
+        {userPlan && userPlan !== "none" ? (
+          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 text-xs font-bold text-primary animate-pulse">
+            <Sparkles className="h-4 w-4 fill-primary" />
+            <span className="capitalize">{userPlan} Plan Active</span>
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-full px-4 py-1.5 text-xs font-bold text-amber-500">
+            <Zap className="h-4 w-4 fill-amber-500" />
+            <span>
+              {isThai 
+                ? `สิทธิ์ทดลองใช้ฟรีวันนี้: ${Math.max(0, 5 - issueCount)} / 5 ครั้ง` 
+                : `Free Trial Quota: ${Math.max(0, 5 - issueCount)} / 5 left`}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Form Card */}
-      <Card className="border-border/40 bg-card/50 backdrop-blur-sm">
+      <Card className="relative border-border/40 bg-card/50 backdrop-blur-sm overflow-hidden">
+        {/* Lock Overlay if Blocked */}
+        {isBlocked && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-md z-40 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-200">
+            <div className="max-w-md space-y-5 bg-card border border-border/50 p-8 rounded-2xl shadow-2xl relative">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20">
+                <Zap className="h-10 w-10 text-amber-500 fill-amber-500 animate-pulse" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-extrabold text-foreground tracking-tight">
+                  {isThai ? "หมดสิทธิ์การทดลองใช้ฟรีแล้ว" : "Free Trial Limit Reached"}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-normal">
+                  {isThai 
+                    ? "คุณออกเอกสารรับรองเอกสารฟรีครบ 5 ครั้งสำหรับวันนี้แล้ว ระบบจะรีเซ็ตสิทธิ์ทดลองใช้อีกครั้งหลังเที่ยงคืน (00:00 น.) หากต้องการใช้งานต่อทันที กรุณาสมัครสมาชิกพรีเมียม"
+                    : "You have generated 5 documents today. Free quota resets at midnight (00:00). To continue issuing documents, please upgrade to a Premium plan."}
+                </p>
+              </div>
+              <div className="pt-2 flex flex-col gap-2">
+                <Button 
+                  onClick={() => setShowUpgradeModal(true)}
+                  className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white font-bold h-10 rounded-xl hover:opacity-95 shadow-lg shadow-purple-950/20"
+                >
+                  <Sparkles className="mr-2 h-4 w-4 fill-white" />
+                  {isThai ? "สมัครสมาชิกและอัปเกรดแผน" : "Upgrade Plan & Subscribe"}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => window.location.href = "/verify"}
+                  className="w-full border border-border text-xs"
+                >
+                  {isThai ? "ไปหน้าตรวจสอบเอกสาร" : "Go to Verify Page"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
             <CardTitle className="text-lg font-semibold text-foreground">
@@ -790,6 +902,15 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
             >
               {t.issueAnother}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upgrade / Pricing Packages Dialog */}
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="max-w-5xl bg-background/95 border-border/40 backdrop-blur-md overflow-y-auto max-h-[90vh] no-scrollbar">
+          <div className="py-4">
+            <PackagesPortal lang={lang} />
           </div>
         </DialogContent>
       </Dialog>

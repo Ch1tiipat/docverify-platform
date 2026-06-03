@@ -23,6 +23,9 @@ import { cn } from "@/lib/utils";
 // --- Firebase Imports ---
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { PackagesPortal } from "./packages-portal";
+import { Zap } from "lucide-react";
 
 interface VerifierPortalProps {
   lang: Language;
@@ -44,6 +47,29 @@ export function VerifierPortal({ lang }: VerifierPortalProps) {
   const [scannedHash, setScannedHash] = useState<string | null>(null); 
   const [consentChecked, setConsentChecked] = useState(false);
   const [showConsentError, setShowConsentError] = useState(false);
+
+  const [verifyCount, setVerifyCount] = useState(0);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const isThai = lang === "th";
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const auth = localStorage.getItem("dv_auth_token") === "docverify_hr_secret_2026";
+      setIsAuthorized(auth);
+      
+      const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+      const lastDate = localStorage.getItem("dv_last_verify_date");
+      let count = parseInt(localStorage.getItem("dv_verify_count") || "0", 10);
+      
+      if (lastDate !== today) {
+        count = 0;
+        localStorage.setItem("dv_last_verify_date", today);
+        localStorage.setItem("dv_verify_count", "0");
+      }
+      setVerifyCount(count);
+    }
+  }, [verificationState]);
 
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractProgress, setExtractProgress] = useState(0);
@@ -423,6 +449,30 @@ export function VerifierPortal({ lang }: VerifierPortalProps) {
       setShowConsentError(true);
       return;
     }
+
+    // --- Limit Check for Non-Members ---
+    if (!isAuthorized) {
+      const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+      const lastDate = localStorage.getItem("dv_last_verify_date");
+      let count = parseInt(localStorage.getItem("dv_verify_count") || "0", 10);
+      
+      if (lastDate !== today) {
+        count = 0;
+        localStorage.setItem("dv_last_verify_date", today);
+        localStorage.setItem("dv_verify_count", "0");
+      }
+      
+      if (count >= 5) {
+        window.location.href = "/pricing";
+        return;
+      }
+      
+      // Increment count
+      const newCount = count + 1;
+      localStorage.setItem("dv_verify_count", String(newCount));
+      setVerifyCount(newCount);
+    }
+
     setShowConsentError(false);
     setVerificationState("verifying");
 
@@ -660,6 +710,15 @@ export function VerifierPortal({ lang }: VerifierPortalProps) {
           <ShieldCheck className="mr-2 h-5 w-5" />
           {t.verifyAuthenticity}
         </Button>
+
+        {!isAuthorized && (
+          <p className="text-center text-xs text-muted-foreground mt-2">
+            {isThai 
+              ? `สิทธิ์ตรวจสอบเอกสารฟรีคงเหลือวันนี้: ${Math.max(0, 5 - verifyCount)} / 5 ครั้ง (รีเซ็ตตอนเที่ยงคืน)` 
+              : `Remaining free verifications today: ${Math.max(0, 5 - verifyCount)} / 5 (resets at midnight)`}
+          </p>
+        )}
+
       </div>
     );
   }
