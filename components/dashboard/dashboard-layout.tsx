@@ -263,7 +263,7 @@ export function DashboardLayout() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowUpgradeModal(true)}
+              onClick={() => setActiveTab("pricing")}
               className="h-9 gap-1.5 rounded-full border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold"
             >
               <Zap className="h-4 w-4 animate-pulse fill-primary" />
@@ -349,10 +349,11 @@ export function DashboardLayout() {
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto p-6">
           {activeTab === "overview" && <Overview lang={lang} />}
-          {activeTab === "issuer" && <IssuerPortal lang={lang} />}
+          {activeTab === "issuer" && <IssuerPortal lang={lang} setActiveTab={setActiveTab} />}
           {activeTab === "history" && <HistoryPortal lang={lang} />}
           {activeTab === "verifier" && <VerifierPortal lang={lang} />}
           {activeTab === "settings" && <SettingsPortal lang={lang} setLang={changeLanguage} />}
+          {activeTab === "pricing" && <PackagesPortal lang={lang} />}
         </main>
       </div>
       {/* Upgrade / Pricing Packages Modal */}

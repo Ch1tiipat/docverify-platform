@@ -34,6 +34,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 interface IssuerPortalProps {
   lang: Language;
+  setActiveTab?: (tab: string) => void;
 }
 
 // โครงสร้างข้อมูลสำหรับตารางเอกสาร
@@ -62,7 +63,7 @@ function maskName(name: string): string {
   return parts.map(p => p.charAt(0) + "***").join(" ");
 }
 
-export function IssuerPortal({ lang }: IssuerPortalProps) {
+export function IssuerPortal({ lang, setActiveTab }: IssuerPortalProps) {
   const t = translations[lang];
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -424,7 +425,13 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
               </div>
               <div className="pt-2 flex flex-col gap-2">
                 <Button 
-                  onClick={() => setShowUpgradeModal(true)}
+                  onClick={() => {
+                    if (setActiveTab) {
+                      setActiveTab("pricing");
+                    } else {
+                      setShowUpgradeModal(true);
+                    }
+                  }}
                   className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white font-bold h-10 rounded-xl hover:opacity-95 shadow-lg shadow-purple-950/20"
                 >
                   <Sparkles className="mr-2 h-4 w-4 fill-white" />
