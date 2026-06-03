@@ -534,30 +534,28 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
               <label className="text-sm font-medium text-foreground">
                 {lang === "th" ? "อัปโหลดเอกสารหลัก (เลือกได้หลายไฟล์พร้อมกันเพื่อรวมไฟล์)" : "Upload Document(s) (Select multiple files to merge them)"}
               </label>
-              {filesToMerge.length > 0 && (
-                <Button
-                  type="button"
-                  onClick={handleMergeFiles}
-                  disabled={isMerging || filesToMerge.length <= 1}
-                  className={`h-8 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 shrink-0 ${
-                    filesToMerge.length > 1
-                      ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                      : "bg-zinc-700/50 text-muted-foreground cursor-not-allowed hover:bg-zinc-700/50"
-                  }`}
-                >
-                  {isMerging ? (
-                    <>
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      {lang === "th" ? "กำลังรวมไฟล์..." : "Merging..."}
-                    </>
-                  ) : (
-                    <>
-                      <Layers className="h-3 w-3" />
-                      {lang === "th" ? "Merge" : "Merge"}
-                    </>
-                  )}
-                </Button>
-              )}
+              <Button
+                type="button"
+                onClick={handleMergeFiles}
+                disabled={isMerging || filesToMerge.length <= 1}
+                className={`h-8 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 shrink-0 ${
+                  filesToMerge.length > 1
+                    ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                    : "bg-zinc-700/50 text-muted-foreground cursor-not-allowed hover:bg-zinc-700/50"
+                }`}
+              >
+                {isMerging ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    {lang === "th" ? "กำลังรวมไฟล์..." : "Merging..."}
+                  </>
+                ) : (
+                  <>
+                    <Layers className="h-3 w-3" />
+                    {lang === "th" ? "Merge" : "Merge"}
+                  </>
+                )}
+              </Button>
             </div>
             <input
               type="file"
@@ -595,7 +593,7 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
                     <p className="text-xs text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)} className="text-destructive hover:bg-destructive/10">
+                <Button variant="ghost" size="sm" onClick={() => { setSelectedFile(null); setFilesToMerge([]); }} className="text-destructive hover:bg-destructive/10">
                   {lang === "th" ? "ลบไฟล์" : "Remove"}
                 </Button>
               </div>
@@ -612,7 +610,26 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
                     {filesToMerge.map((file, idx) => (
                       <div key={idx} className="flex items-center justify-between text-xs p-2 bg-background/40 rounded border border-border/20">
                         <span className="truncate max-w-[200px] font-medium text-foreground">{idx + 1}. {file.name}</span>
-                        <span className="text-muted-foreground">{formatFileSize(file.size)}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">{formatFileSize(file.size)}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            type="button"
+                            onClick={() => {
+                              const updated = filesToMerge.filter((_, i) => i !== idx);
+                              setFilesToMerge(updated);
+                              if (updated.length === 1) {
+                                setSelectedFile(updated[0]);
+                              } else if (updated.length === 0) {
+                                setSelectedFile(null);
+                              }
+                            }}
+                            className="text-destructive hover:bg-destructive/10 h-6 px-2 text-[10px]"
+                          >
+                            {lang === "th" ? "ลบ" : "Remove"}
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
