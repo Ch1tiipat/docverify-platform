@@ -105,8 +105,9 @@ export function VerifierPortal({ lang }: VerifierPortalProps) {
           await new Promise(r => setTimeout(r, 1500)); 
           
           const fileName = selectedFile.name.toLowerCase();
-          // ถ้าชื่อไฟล์มีคำว่า unrelated, other, random, ภายนอก จะถือว่าเป็นไฟล์คนละเรื่อง
-          const isUnrelated = fileName.includes("unrelated") || fileName.includes("other") || fileName.includes("random") || fileName.includes("ภายนอก") || fileName.includes("แมว") || fileName.includes("หมา");
+          // ถ้าชื่อไฟล์มีคำเฉพาะที่เกี่ยวข้องกับ SET จะถือว่าเป็นใบประกาศนียบัตร นอกนั้นถือเป็นเอกสารอื่นภายนอกระบบทั้งหมด
+          const isSetCert = fileName.includes("set") || fileName.includes("cert") || fileName.includes("learning") || fileName.includes("tamper") || fileName.includes("edit") || fileName.includes("fake") || fileName.includes("แคระ") || fileName.includes("ประทุม") || fileName.includes("ใบประกาศ");
+          const isUnrelated = !isSetCert;
           
           let risks = [];
           if (isUnrelated) {
@@ -236,7 +237,8 @@ export function VerifierPortal({ lang }: VerifierPortalProps) {
           } else {
             // If API fails to extract text, we mock the result based on filename for the demo
             const fileName = selectedFile.name.toLowerCase();
-            const isUnrelated = fileName.includes("unrelated") || fileName.includes("other") || fileName.includes("random") || fileName.includes("ภายนอก") || fileName.includes("แมว") || fileName.includes("หมา");
+            const isSetCert = fileName.includes("set") || fileName.includes("cert") || fileName.includes("learning") || fileName.includes("tamper") || fileName.includes("edit") || fileName.includes("fake") || fileName.includes("แคระ") || fileName.includes("ประทุม") || fileName.includes("ใบประกาศ");
+            const isUnrelated = !isSetCert;
             
             let risks = [];
             if (isUnrelated) {
@@ -281,7 +283,8 @@ export function VerifierPortal({ lang }: VerifierPortalProps) {
     } catch (err: any) {
       // Just fallback gracefully again instead of showing raw error
       const fileName = selectedFile.name.toLowerCase();
-      const isUnrelated = fileName.includes("unrelated") || fileName.includes("other") || fileName.includes("random") || fileName.includes("ภายนอก") || fileName.includes("แมว") || fileName.includes("หมา");
+      const isSetCert = fileName.includes("set") || fileName.includes("cert") || fileName.includes("learning") || fileName.includes("tamper") || fileName.includes("edit") || fileName.includes("fake") || fileName.includes("แคระ") || fileName.includes("ประทุม") || fileName.includes("ใบประกาศ");
+      const isUnrelated = !isSetCert;
       
       let risks = [];
       if (isUnrelated) {
