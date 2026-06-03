@@ -75,33 +75,28 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
   });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedFile2, setSelectedFile2] = useState<File | null>(null);
+  const [filesToMerge, setFilesToMerge] = useState<File[]>([]);
   const [isMerging, setIsMerging] = useState(false);
   const [isAutoFilling, setIsAutoFilling] = useState(false);
 
   const handleMergeFiles = async () => {
-    if (!selectedFile || !selectedFile2) return;
+    if (filesToMerge.length < 2) return;
     setIsMerging(true);
     try {
-      const arrayBuffer1 = await selectedFile.arrayBuffer();
-      const arrayBuffer2 = await selectedFile2.arrayBuffer();
-      
-      const pdf1 = await PDFDocument.load(arrayBuffer1);
-      const pdf2 = await PDFDocument.load(arrayBuffer2);
-      
       const mergedPdf = await PDFDocument.create();
       
-      const copiedPages1 = await mergedPdf.copyPages(pdf1, pdf1.getPageIndices());
-      copiedPages1.forEach((page) => mergedPdf.addPage(page));
-      
-      const copiedPages2 = await mergedPdf.copyPages(pdf2, pdf2.getPageIndices());
-      copiedPages2.forEach((page) => mergedPdf.addPage(page));
+      for (const file of filesToMerge) {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(arrayBuffer);
+        const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+        copiedPages.forEach((page) => mergedPdf.addPage(page));
+      }
       
       const mergedPdfBytes = await mergedPdf.save();
       const mergedFile = new File([mergedPdfBytes], "merged_document.pdf", { type: "application/pdf" });
       
       setSelectedFile(mergedFile);
-      setSelectedFile2(null);
+      setFilesToMerge([]);
       alert(lang === "th" ? "รวมไฟล์ PDF สำเร็จ!" : "PDF files merged successfully!");
     } catch (error) {
       console.error("Error merging PDFs:", error);
@@ -163,8 +158,14 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
   }, []);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) setSelectedFile(file);
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    if (files.length === 1) {
+      setSelectedFile(files[0]);
+      setFilesToMerge([]);
+    } else if (files.length > 1) {
+      setFilesToMerge(files);
+      setSelectedFile(null);
+    }
   }, []);
 
   const handleDropZoneClick = useCallback(() => {
@@ -173,8 +174,14 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file) setSelectedFile(file);
+    const files = e.dataTransfer.files ? Array.from(e.dataTransfer.files) : [];
+    if (files.length === 1) {
+      setSelectedFile(files[0]);
+      setFilesToMerge([]);
+    } else if (files.length > 1) {
+      setFilesToMerge(files);
+      setSelectedFile(null);
+    }
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -406,107 +413,91 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
             </div>
           </div>
 
-          {/* File Upload Slots */}
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Slot 1: Primary PDF */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                {lang === "th" ? "1. อัปโหลดเอกสารหลัก (PDF)" : "1. Primary Certificate (PDF)"}
-              </label>
-              <input
-                type="file"
-                id="issuer-file-1"
-                accept=".pdf"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) setSelectedFile(file);
-                }}
-                className="hidden"
-              />
-              <div
-                onClick={() => document.getElementById("issuer-file-1")?.click()}
-                className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border/60 bg-background/30 p-6 transition-colors hover:border-primary/50 hover:bg-background/50"
-              >
-                {selectedFile ? (
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-8 w-8 text-primary" />
-                    <div className="text-left">
-                      <p className="font-medium text-xs text-foreground truncate max-w-[120px]">{selectedFile.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <Upload className="h-6 w-6 text-muted-foreground" />
-                    <p className="text-center text-xs text-muted-foreground">
-                      {lang === "th" ? "เลือกเอกสารหลัก" : "Upload main certificate"}
-                    </p>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Slot 2: Secondary PDF (Optional, for merging) */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                {lang === "th" ? "2. อัปโหลดเอกสารแนบ/ทรานสคริปต์ (PDF)" : "2. Attachment / Transcript (PDF)"}
-              </label>
-              <input
-                type="file"
-                id="issuer-file-2"
-                accept=".pdf"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) setSelectedFile2(file);
-                }}
-                className="hidden"
-              />
-              <div
-                onClick={() => document.getElementById("issuer-file-2")?.click()}
-                className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border/60 bg-background/30 p-6 transition-colors hover:border-primary/50 hover:bg-background/50"
-              >
-                {selectedFile2 ? (
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-8 w-8 text-emerald-500" />
-                    <div className="text-left">
-                      <p className="font-medium text-xs text-foreground truncate max-w-[120px]">{selectedFile2.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{formatFileSize(selectedFile2.size)}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <Upload className="h-6 w-6 text-muted-foreground" />
-                    <p className="text-center text-xs text-muted-foreground">
-                      {lang === "th" ? "เลือกเอกสารแนบ (ทางเลือก)" : "Upload attachment (optional)"}
-                    </p>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Merge Button */}
-          {selectedFile && selectedFile2 && (
-            <Button
-              type="button"
-              onClick={handleMergeFiles}
-              disabled={isMerging}
-              variant="secondary"
-              className="w-full bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border border-emerald-500/20 gap-2"
+          {/* File Upload Slots (Unified Multi-File Support) */}
+          <div className="space-y-4">
+            <label className="text-sm font-medium text-foreground">
+              {lang === "th" ? "อัปโหลดเอกสารหลัก (เลือกได้หลายไฟล์พร้อมกันเพื่อรวมไฟล์)" : "Upload Document(s) (Select multiple files to merge them)"}
+            </label>
+            <input
+              type="file"
+              id="issuer-file-input"
+              accept=".pdf"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            
+            <div
+              onClick={() => document.getElementById("issuer-file-input")?.click()}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border/60 bg-background/30 p-8 transition-colors hover:border-primary/50 hover:bg-background/50 text-center"
             >
-              {isMerging ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {lang === "th" ? "กำลังรวมเอกสาร..." : "Merging PDF files..."}
-                </>
-              ) : (
-                <>
-                  <Layers className="h-4 w-4" />
-                  {lang === "th" ? "รวมไฟล์ PDF ทั้งสองเข้าด้วยกัน (Merge)" : "Merge both PDF files together"}
-                </>
-              )}
-            </Button>
-          )}
+              <Upload className="h-8 w-8 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {lang === "th" ? "คลิกเพื่อเลือกไฟล์ หรือ ลากไฟล์มาวางที่นี่" : "Click to select or drag files here"}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {lang === "th" ? "สามารถเลือกไฟล์ PDF พร้อมกันหลายไฟล์เพื่อทำการรวมข้อมูลได้" : "You can select multiple PDF files at once to merge them"}
+                </p>
+              </div>
+            </div>
+
+            {/* Display single selected file ready for issuance */}
+            {selectedFile && (
+              <div className="flex items-center justify-between border border-border/40 p-4 rounded-xl bg-background/60">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-8 w-8 text-primary" />
+                  <div className="text-left">
+                    <p className="font-semibold text-sm text-foreground truncate max-w-[250px]">{selectedFile.name}</p>
+                    <p className="text-xs text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)} className="text-destructive hover:bg-destructive/10">
+                  {lang === "th" ? "ลบไฟล์" : "Remove"}
+                </Button>
+              </div>
+            )}
+
+            {/* Display list of files to merge */}
+            {filesToMerge.length > 0 && (
+              <div className="space-y-3">
+                <div className="bg-muted/50 p-3 rounded-lg border border-border/40 space-y-2">
+                  <p className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    {lang === "th" ? `ไฟล์ที่เลือกเพื่อรวมเข้าด้วยกัน (${filesToMerge.length} ไฟล์):` : `Selected files to merge (${filesToMerge.length} files):`}
+                  </p>
+                  <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                    {filesToMerge.map((file, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-xs p-2 bg-background/40 rounded border border-border/20">
+                        <span className="truncate max-w-[200px] font-medium text-foreground">{idx + 1}. {file.name}</span>
+                        <span className="text-muted-foreground">{formatFileSize(file.size)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={handleMergeFiles}
+                  disabled={isMerging}
+                  className="w-full bg-emerald-600 text-white hover:bg-emerald-700 gap-2"
+                >
+                  {isMerging ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      {lang === "th" ? "กำลังรวมไฟล์..." : "Merging files..."}
+                    </>
+                  ) : (
+                    <>
+                      <Layers className="h-4 w-4" />
+                      {lang === "th" ? "ทำการรวมไฟล์ PDF ทั้งหมดเข้าด้วยกัน (Merge)" : "Merge all selected PDF files"}
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
 
           {/* Consent Checkbox */}
           <div className="space-y-2">
