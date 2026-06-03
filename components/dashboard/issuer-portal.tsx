@@ -197,12 +197,13 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
-    if (files.length === 1) {
-      setSelectedFile(files[0]);
-      setFilesToMerge([]);
-    } else if (files.length > 1) {
+    if (files.length > 0) {
       setFilesToMerge(files);
-      setSelectedFile(null);
+      if (files.length === 1) {
+        setSelectedFile(files[0]);
+      } else {
+        setSelectedFile(null);
+      }
     }
   }, []);
 
@@ -213,12 +214,13 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     const files = e.dataTransfer.files ? Array.from(e.dataTransfer.files) : [];
-    if (files.length === 1) {
-      setSelectedFile(files[0]);
-      setFilesToMerge([]);
-    } else if (files.length > 1) {
+    if (files.length > 0) {
       setFilesToMerge(files);
-      setSelectedFile(null);
+      if (files.length === 1) {
+        setSelectedFile(files[0]);
+      } else {
+        setSelectedFile(null);
+      }
     }
   }, []);
 
@@ -577,10 +579,34 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
             {filesToMerge.length > 0 && (
               <div className="space-y-3">
                 <div className="bg-muted/50 p-3 rounded-lg border border-border/40 space-y-2">
-                  <p className="text-xs font-bold text-foreground uppercase tracking-wider">
-                    {lang === "th" ? `ไฟล์ที่เลือกเพื่อรวมเข้าด้วยกัน (${filesToMerge.length} ไฟล์):` : `Selected files to merge (${filesToMerge.length} files):`}
-                  </p>
-                  <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-xs font-bold text-foreground uppercase tracking-wider">
+                      {lang === "th" ? `ไฟล์ที่เลือกเพื่อรวมเข้าด้วยกัน (${filesToMerge.length} ไฟล์):` : `Selected files to merge (${filesToMerge.length} files):`}
+                    </p>
+                    <Button
+                      type="button"
+                      onClick={handleMergeFiles}
+                      disabled={isMerging || filesToMerge.length <= 1}
+                      className={`h-8 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 shrink-0 ${
+                        filesToMerge.length > 1
+                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                          : "bg-zinc-700/50 text-muted-foreground cursor-not-allowed hover:bg-zinc-700/50"
+                      }`}
+                    >
+                      {isMerging ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          {lang === "th" ? "กำลังรวมไฟล์..." : "Merging..."}
+                        </>
+                      ) : (
+                        <>
+                          <Layers className="h-3 w-3" />
+                          {lang === "th" ? "Merge" : "Merge"}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="space-y-1.5 max-h-40 overflow-y-auto pt-1">
                     {filesToMerge.map((file, idx) => (
                       <div key={idx} className="flex items-center justify-between text-xs p-2 bg-background/40 rounded border border-border/20">
                         <span className="truncate max-w-[200px] font-medium text-foreground">{idx + 1}. {file.name}</span>
@@ -589,25 +615,6 @@ export function IssuerPortal({ lang }: IssuerPortalProps) {
                     ))}
                   </div>
                 </div>
-
-                <Button
-                  type="button"
-                  onClick={handleMergeFiles}
-                  disabled={isMerging}
-                  className="w-full bg-emerald-600 text-white hover:bg-emerald-700 gap-2"
-                >
-                  {isMerging ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      {lang === "th" ? "กำลังรวมไฟล์..." : "Merging files..."}
-                    </>
-                  ) : (
-                    <>
-                      <Layers className="h-4 w-4" />
-                      {lang === "th" ? "ทำการรวมไฟล์ PDF ทั้งหมดเข้าด้วยกัน (Merge)" : "Merge all selected PDF files"}
-                    </>
-                  )}
-                </Button>
               </div>
             )}
           </div>
