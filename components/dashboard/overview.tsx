@@ -40,6 +40,7 @@ export function Overview({ lang }: OverviewProps) {
   const [docCount, setDocCount] = useState<number>(0);
   const [scanCount, setScanCount] = useState<number>(0);
   const [successRate, setSuccessRate] = useState<number>(100);
+  const [activeCard, setActiveCard] = useState<number>(0);
 
   // ดึงข้อมูลสถิติแบบ Real-time
   useEffect(() => {
@@ -130,35 +131,71 @@ export function Overview({ lang }: OverviewProps) {
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.labelKey} className="border-border/40 bg-card/50 backdrop-blur-sm">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {t[stat.labelKey]}
-                </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                  {stat.positive ? (
-                    <TrendingUp className="h-3 w-3 text-primary" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-destructive" />
-                  )}
-                  <span className={stat.positive ? "text-primary" : "text-destructive"}>
-                    {stat.change}
-                  </span>{" "}
-                  {t.fromLastMonth}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
+      {/* Stats Container: Swipeable on Mobile, Grid on Desktop */}
+      <div className="relative">
+        <style dangerouslySetInnerHTML={{__html: `
+          .no-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+        `}} />
+        <div 
+          onScroll={(e) => {
+            const container = e.currentTarget;
+            const scrollPosition = container.scrollLeft;
+            const cardWidth = container.clientWidth;
+            const index = Math.round(scrollPosition / cardWidth);
+            if (index >= 0 && index < stats.length) {
+              setActiveCard(index);
+            }
+          }}
+          className="flex md:grid gap-4 md:grid-cols-2 lg:grid-cols-4 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory no-scrollbar pb-3 md:pb-0"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div 
+                key={stat.labelKey} 
+                className="w-full shrink-0 snap-center md:w-auto md:shrink-1 md:snap-align-none"
+              >
+                <Card className="border-border/40 bg-card/50 backdrop-blur-sm h-full">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      {t[stat.labelKey]}
+                    </CardTitle>
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                      {stat.positive ? (
+                        <TrendingUp className="h-3 w-3 text-primary" />
+                      ) : (
+                        <TrendingDown className="h-3 w-3 text-destructive" />
+                      )}
+                      <span className={stat.positive ? "text-primary" : "text-destructive"}>
+                        {stat.change}
+                      </span>{" "}
+                      {t.fromLastMonth}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Mobile Swipe Indicators (dots) */}
+        <div className="flex justify-center gap-2 mt-2 md:hidden">
+          {stats.map((_, idx) => (
+            <div
+              key={idx}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                activeCard === idx ? "w-6 bg-primary" : "w-2 bg-muted-foreground/30"
+              }`}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Recent Activity Table (Real Data from Firebase) */}
