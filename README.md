@@ -55,6 +55,13 @@
 
 2. **กำหนดค่าสภาพแวดล้อม (.env.local):**
    สร้างไฟล์ชื่อ `.env.local` ไว้ที่โฟลเดอร์นอกสุดของโปรเจกต์ และใส่ค่าเชื่อมโยงดังนี้:
+   # Firebase Configuration
+NEXT_PUBLIC_FIREBASE_API_KEY="AIzaSyCI7JNHdsJg4A2NstJnB4344_TuZ8bBMqs"
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="docverify-platform.firebaseapp.com"
+NEXT_PUBLIC_FIREBASE_PROJECT_ID="docverify-platform"
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="docverify-platform.firebasestorage.app"
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="515211424241"
+NEXT_PUBLIC_FIREBASE_APP_ID="1:515211424241:web:067608edfdff399ae99450"
 
 3. **เริ่มระบบทดสอบ:**
    ```bash
