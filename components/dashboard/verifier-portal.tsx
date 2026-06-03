@@ -463,7 +463,7 @@ export function VerifierPortal({ lang }: VerifierPortalProps) {
       }
       
       if (count >= 5) {
-        window.location.href = "/pricing";
+        setShowLimitModal(true);
         return;
       }
       
@@ -718,6 +718,31 @@ export function VerifierPortal({ lang }: VerifierPortalProps) {
               : `Remaining free verifications today: ${Math.max(0, 5 - verifyCount)} / 5 (resets at midnight)`}
           </p>
         )}
+
+        {/* Upgrade / Daily Limit Warning Modal */}
+        <Dialog open={showLimitModal} onOpenChange={setShowLimitModal}>
+          <DialogContent className="max-w-5xl bg-background/95 border-border/40 backdrop-blur-md overflow-y-auto max-h-[90vh] no-scrollbar">
+            <div className="py-2 text-center max-w-md mx-auto space-y-4">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/25">
+                <Zap className="h-8 w-8 text-amber-500 fill-amber-500 animate-pulse" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-xl font-bold text-foreground">
+                  {isThai ? "สิทธิ์การตรวจสอบฟรีของคุณหมดแล้ว" : "Free Verification Limit Reached"}
+                </h3>
+                <p className="text-xs text-muted-foreground leading-normal">
+                  {isThai 
+                    ? "ผู้ใช้งานฟรีจำกัดการตรวจสอบได้ 5 ครั้งต่อวัน โดยโควตาจะรีเซ็ตในเวลาเที่ยงคืน หากคุณต้องการตรวจสอบไม่จำกัดและใช้งาน AI สแกนเชิงลึก กรุณาอัปเกรดแพ็กเกจพรีเมียม"
+                    : "Free tier is limited to 5 verifications daily. Limits reset at midnight. Upgrade to Premium for unlimited scans and advanced AI analysis tools."}
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t border-border/30 pt-4 mt-2">
+              <PackagesPortal lang={lang} />
+            </div>
+          </DialogContent>
+        </Dialog>
 
       </div>
     );

@@ -10,6 +10,7 @@ import { IssuerPortal } from "./issuer-portal";
 import { SettingsPortal } from "./settings-portal";
 import { VerifierPortal } from "./verifier-portal";
 import { HistoryPortal } from "./history-portal";
+import { PackagesPortal } from "./packages-portal";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -63,6 +64,7 @@ export function DashboardLayout() {
   const [lang, setLang] = useState<Language>("en");
   const [activeTab, setActiveTab] = useState("overview");
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [notificationsRead, setNotificationsRead] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   
@@ -261,7 +263,7 @@ export function DashboardLayout() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => router.push("/pricing")}
+              onClick={() => setShowUpgradeModal(true)}
               className="h-9 gap-1.5 rounded-full border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold"
             >
               <Zap className="h-4 w-4 animate-pulse fill-primary" />
@@ -353,9 +355,14 @@ export function DashboardLayout() {
           {activeTab === "settings" && <SettingsPortal lang={lang} setLang={changeLanguage} />}
         </main>
       </div>
-
-
-
+      {/* Upgrade / Pricing Packages Modal */}
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="max-w-5xl bg-background/95 border-border/40 backdrop-blur-md overflow-y-auto max-h-[90vh] no-scrollbar">
+          <div className="py-4">
+            <PackagesPortal lang={lang} />
+          </div>
+        </DialogContent>
+      </Dialog>
       {/* Help Modal */}
       <Dialog open={showHelpModal} onOpenChange={setShowHelpModal}>
         <DialogContent className="sm:max-w-lg border-border/40 bg-card">

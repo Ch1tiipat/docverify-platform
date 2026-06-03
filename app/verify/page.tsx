@@ -268,13 +268,11 @@ function VerifyContent() {
 
             <div className="w-full space-y-3 pt-2">
               <Button 
-                asChild
+                onClick={() => setShowUpgradeModal(true)} 
                 className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white font-bold h-10 rounded-lg hover:opacity-95"
               >
-                <Link href="/pricing">
-                  <Sparkles className="mr-2 h-4 w-4 fill-white" />
-                  {isThai ? "อัปเกรดเพื่อสแกนไม่จำกัด" : "Upgrade to Pro / Premium"}
-                </Link>
+                <Sparkles className="mr-2 h-4 w-4 fill-white" />
+                {isThai ? "อัปเกรดเพื่อสแกนไม่จำกัด" : "Upgrade to Pro / Premium"}
               </Button>
               
               <Button asChild variant="outline" className="w-full border-border/40 hover:bg-background/50 text-xs h-10">
@@ -301,6 +299,14 @@ function VerifyContent() {
           <VerifierPortal lang={lang} />
         </div>
       )}
+      {/* Upgrade Modal */}
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="max-w-5xl bg-background/95 border-border/40 backdrop-blur-md overflow-y-auto max-h-[90vh] no-scrollbar">
+          <div className="py-4">
+            <PackagesPortal lang={lang} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
