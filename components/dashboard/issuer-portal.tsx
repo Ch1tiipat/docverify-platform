@@ -22,9 +22,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Shield, Upload, FileText, CheckCircle2, Copy, Check, Loader2, Eye, Sparkles, Layers } from "lucide-react";
+import { Shield, Upload, FileText, CheckCircle2, Copy, Check, Loader2, Eye, Sparkles, Layers, Zap } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { PDFDocument } from "pdf-lib";
+import { PackagesPortal } from "./packages-portal";
 
 // --- Firebase Imports ---
 import { db, storage } from "@/lib/firebase";
