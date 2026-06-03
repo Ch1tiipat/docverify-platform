@@ -147,20 +147,66 @@ export function IssuerPortal({ lang, setActiveTab }: IssuerPortalProps) {
 
   const handleAutoFill = () => {
     setIsAutoFilling(true);
+    
+    // Get reference file to extract name info from
+    const targetFile = selectedFile || (filesToMerge.length > 0 ? filesToMerge[0] : null);
+    
     setTimeout(() => {
       setIsAutoFilling(false);
+      
+      let title = "Bachelor of Science in Digital Communication";
+      let holderName = "สมชาย ใจดี (Somchai Jaidee)";
+      let holderEmail = "somchai.jaidee@example.com";
+      let studentId = "STU-2026-004812";
+      let major = "Digital Communication & Media Technology";
+      
+      if (targetFile) {
+        const fileNameNoExt = targetFile.name.replace(/\.[^/.]+$/, "");
+        // Clean name separators
+        const cleanName = fileNameNoExt.replace(/[-_]/g, " ");
+        
+        // 1. Detect Title
+        if (/transcript|grade/i.test(cleanName)) {
+          title = lang === "th" ? "ใบรายงานผลการศึกษา (Academic Transcript)" : "Official Academic Transcript";
+          major = "Computer Science & Information Technology";
+        } else if (/certificate|cert/i.test(cleanName)) {
+          title = lang === "th" ? "หนังสือรับรองการสำเร็จการศึกษา" : "Certificate of Graduation";
+          major = "Digital Communication & Media Technology";
+        } else if (/diploma/i.test(cleanName)) {
+          title = lang === "th" ? "วุฒิบัตรการศึกษา" : "Diploma Certificate";
+          major = "Business Administration & Management";
+        } else {
+          // Capitalize filename keywords as title
+          title = cleanName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+        }
+        
+        // 2. Detect Person Name (if there are alphabetical keywords)
+        const nameMatches = cleanName.match(/([a-zA-Z]+)\s+([a-zA-Z]+)/);
+        if (nameMatches && !/transcript|certificate|diploma|cert|official|document/i.test(nameMatches[0])) {
+          const first = nameMatches[1].charAt(0).toUpperCase() + nameMatches[1].slice(1).toLowerCase();
+          const last = nameMatches[2].charAt(0).toUpperCase() + nameMatches[2].slice(1).toLowerCase();
+          holderName = `${first} ${last}`;
+          holderEmail = `${first.toLowerCase()}.${last.toLowerCase()}@example.com`;
+        }
+        
+        // Generate random ID for realism
+        const randomID = Math.floor(100000 + Math.random() * 900000);
+        studentId = `STU-2026-${randomID}`;
+      }
+      
       setFormData({
-        title: "Bachelor of Science in Digital Communication",
-        holderName: "สมชาย ใจดี (Somchai Jaidee)",
-        holderEmail: "somchai.jaidee@example.com",
-        studentId: "STU-2026-004812",
-        major: "Digital Communication & Media Technology",
+        title,
+        holderName,
+        holderEmail,
+        studentId,
+        major,
         issueDate: new Date().toISOString().split("T")[0],
       });
+      
       alert(lang === "th" 
-        ? "✨ AI สแกนตรวจเอกสารและบีบอัดลดขนาดลง 40% เรียบร้อยแล้ว!" 
-        : "✨ AI analyzed document and successfully compressed it by 40%!");
-    }, 2000);
+        ? `✨ AI ตรวจวิเคราะห์เอกสาร "${targetFile ? targetFile.name : ''}" และเติมข้อมูลเรียบร้อยแล้ว!` 
+        : `✨ AI analyzed "${targetFile ? targetFile.name : 'document'}" and auto-filled data successfully!`);
+    }, 1500);
   };
 
   const [consentChecked, setConsentChecked] = useState(false);
