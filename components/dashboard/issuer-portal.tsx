@@ -583,7 +583,7 @@ export function IssuerPortal({ lang, setActiveTab }: IssuerPortalProps) {
 
           {/* File Upload Slots (Unified Multi-File Support) */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-4 min-h-[32px]">
+            <div className="flex items-center justify-start gap-3 min-h-[32px]">
               <label className="text-sm font-medium text-foreground">
                 {lang === "th" ? "อัปโหลดเอกสารหลัก (เลือกได้หลายไฟล์พร้อมกันเพื่อรวมไฟล์)" : "Upload Document(s) (Select multiple files to merge them)"}
               </label>
